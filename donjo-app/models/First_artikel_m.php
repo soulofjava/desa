@@ -124,6 +124,7 @@ class First_artikel_m extends CI_Model {
 			->join('user u', 'a.id_user = u.id', 'LEFT')
 			->join('kategori k', 'a.id_kategori = k.id', 'LEFT')
 			->where('a.enabled', 1)
+			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('a.headline <>', 1)
 			->where('a.id_kategori NOT IN (1000)')
 			->where('a.tgl_upload < NOW()');
