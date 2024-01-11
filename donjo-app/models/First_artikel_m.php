@@ -179,7 +179,8 @@ class First_artikel_m extends CI_Model
 			->select('a.*, YEAR(tgl_upload) AS thn, MONTH(tgl_upload) AS bln, DAY(tgl_upload) AS hri')
 			->where('a.enabled', 1)
 			->where('a.id_kategori NOT IN (1000)')
-			->where('a.tgl_upload < NOW()');
+			->where('a.tgl_upload < NOW()')
+			->where('a.desa_id', $this->config->item('desa_id'));
 
 		switch ($type) {
 			case 'acak':
@@ -207,7 +208,7 @@ class First_artikel_m extends CI_Model
 
 	public function paging_arsip($p = 1)
 	{
-		$sql = "SELECT COUNT(a.id) AS id FROM artikel a LEFT JOIN user u ON a.id_user = u.id LEFT JOIN kategori k ON a.id_kategori = k.id WHERE a.enabled=1 AND a.tgl_upload < NOW()";
+		$sql = "SELECT COUNT(a.id) AS id FROM artikel a LEFT JOIN user u ON a.id_user = u.id LEFT JOIN kategori k ON a.id_kategori = k.id WHERE a.enabled=1 AND a.tgl_upload < NOW() AND a.desa_id=" . $this->config->item('desa_id');
 		$query = $this->db->query($sql);
 		$row = $query->row_array();
 		$jml_data = $row['id'];
@@ -225,7 +226,7 @@ class First_artikel_m extends CI_Model
 	{
 		$paging_sql = ' LIMIT ' . $offset . ',' . $limit;
 		$sql = "SELECT a.*,u.nama AS owner,k.kategori, YEAR(tgl_upload) as thn, MONTH(tgl_upload) as bln, DAY(tgl_upload) as hri FROM artikel a LEFT JOIN user u ON a.id_user = u.id LEFT JOIN kategori k ON a.id_kategori = k.id WHERE a.enabled=?
-			AND a.tgl_upload < NOW()
+			AND a.tgl_upload < NOW() AND a.desa_id=" . $this->config->item('desa_id') . "
 		ORDER BY a.tgl_upload DESC";
 
 		$sql .= $paging_sql;
@@ -328,7 +329,8 @@ class First_artikel_m extends CI_Model
 			->select('a.*, g.*, YEAR(tgl_upload) AS thn, MONTH(tgl_upload) AS bln, DAY(tgl_upload) AS hri')
 			->join('artikel a', 'a.id = g.id_artikel', 'LEFT')
 			->where('a.enabled', 1)
-			->where('a.id_kategori', '1000');
+			->where('a.id_kategori', '1000')
+			->where('g.desa_id', $this->config->item('desa_id'));
 
 		switch ($type) {
 			case 'yad':
@@ -357,7 +359,7 @@ class First_artikel_m extends CI_Model
 		$sql = "SELECT a.*, b.*, YEAR(b.tgl_upload) AS thn, MONTH(b.tgl_upload) AS bln, DAY(b.tgl_upload) AS hri, b.slug as slug
 			FROM komentar a
 			INNER JOIN artikel b ON a.id_artikel = b.id
-			WHERE a.status = ? AND a.id_artikel <> 775
+			WHERE a.status = ? AND a.id_artikel <> 775 AND a.desa_id='" . $this->config->item('desa_id') . "'
 			ORDER BY a.tgl_upload DESC LIMIT 10 ";
 		$query = $this->db->query($sql, 1);
 		$data = $query->result_array();
@@ -379,6 +381,7 @@ class First_artikel_m extends CI_Model
 		$data = $this->db
 			->group_start()
 			->where('id', $id)
+			->where('desa_id', $this->config->item('desa_id'))
 			->or_where('slug', $id)
 			->group_end()
 			->get('kategori')
@@ -405,6 +408,7 @@ class First_artikel_m extends CI_Model
 			->join('user u', 'a.id_user = u.id', 'left')
 			->join('kategori k', 'a.id_kategori = k.id', 'left')
 			->where('a.enabled', 1)
+			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('a.tgl_upload < NOW()')
 			->group_start()
 			->where('a.slug', $url)
@@ -425,7 +429,7 @@ class First_artikel_m extends CI_Model
 
 	public function get_agenda($id)
 	{
-		$data = $this->db->where('id_artikel', $id)
+		$data = $this->db->where('id_artikel', $id)->where('desa_id', $this->config->item('desa_id'))
 			->get('agenda')->row_array();
 		return $data;
 	}
@@ -453,6 +457,7 @@ class First_artikel_m extends CI_Model
 			->join('user u', 'a.id_user = u.id', 'left')
 			->join('kategori k', 'a.id_kategori = k.id', 'left')
 			->where('a.enabled', 1)
+			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('tgl_upload < NOW()');
 
 		if (!empty($id)) {
@@ -524,6 +529,7 @@ class First_artikel_m extends CI_Model
 	{
 		$data = $this->db->from('komentar')
 			->where('id_artikel', $id)
+			->where('desa_id', $this->config->item('desa_id'))
 			->where('status', 1)
 			->order_by('tgl_upload DESC')
 			->get()->result_array();
@@ -552,6 +558,7 @@ class First_artikel_m extends CI_Model
 
 		$id = $this->db->select('id')
 			->where('slug', $url)
+			->where('desa_id', $this->config->item('desa_id'))
 			->or_where('id', $url)
 			->get('artikel')
 			->row()->id;
