@@ -135,7 +135,7 @@ class Laporan_bulanan_model extends CI_Model
 			from  tweb_wil_clusterdesa c WHERE rw<>'0' AND rt<>'0' AND (select count(id) from tweb_penduduk where id_cluster=c.id)>0 ";
 
 		$sql .= $this->dusun_sql();
-		$sql .= " ORDER BY c.dusun,c.rw,c.rt ";
+		$sql .= "WHERE c.desa_id = " . $this->config->item('desa_id') . " ORDER BY c.dusun,c.rw,c.rt ";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 		//	$data = null;
@@ -166,6 +166,7 @@ class Laporan_bulanan_model extends CI_Model
 			->select('p.*, l.kode_peristiwa')
 			->from('log_penduduk l')
 			->join('tweb_penduduk p', 'l.id_pend = p.id')
+			->where('desa_id', $this->config->item('desa_id'))
 			->where("DATE_FORMAT(l.tgl_lapor, '%Y-%m') < '{$thn}-{$pad_bln}'");
 
 		$penduduk_mutasi_sql = $this->db->get_compiled_select();
@@ -226,6 +227,7 @@ class Laporan_bulanan_model extends CI_Model
 			->from('log_penduduk l')
 			->join('tweb_penduduk p', 'l.id_pend = p.id')
 			->where('year(l.tgl_lapor)', $thn)
+			->where('desa_id', $this->config->item('desa_id'))
 			->where('month(l.tgl_lapor)', $bln)
 			->where('l.kode_peristiwa', $kode_peristiwa);
 
@@ -249,9 +251,9 @@ class Laporan_bulanan_model extends CI_Model
 			->select('sum(case when sex = 2 and warganegara_id <> 2 then 1 else 0 end) AS WNI_P')
 			->select('sum(case when sex = 1 and warganegara_id = 2 then 1 else 0 end) AS WNA_L')
 			->select('sum(case when sex = 2 and warganegara_id = 2 then 1 else 0 end) AS WNA_P')
-			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn) AS KK")
-			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 1) AS KK_L")
-			->select("(SELECT COUNT(id) FROM log_keluarga k WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 2) AS KK_P")
+			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND desa_id = " . $this->config->item('desa_id') . " AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn) AS KK")
+			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND desa_id = " . $this->config->item('desa_id') . " AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 1) AS KK_L")
+			->select("(SELECT COUNT(id) FROM log_keluarga k WHERE id_peristiwa = 1 AND desa_id = " . $this->config->item('desa_id') . " AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 2) AS KK_P")
 			->from('(' . $mutasi_pada_bln_thn . ') as m')
 			->get()
 			->row_array();
