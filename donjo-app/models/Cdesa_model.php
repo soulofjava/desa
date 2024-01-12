@@ -1,5 +1,6 @@
 <?php
-class Cdesa_model extends CI_Model {
+class Cdesa_model extends CI_Model
+{
 
 	public function __construct()
 	{
@@ -7,7 +8,7 @@ class Cdesa_model extends CI_Model {
 		$this->load->model('data_persil_model');
 	}
 
-	public function autocomplete($cari='')
+	public function autocomplete($cari = '')
 	{
 		$cari = $this->db->escape_like_str($cari);
 		$sql_kolom = [];
@@ -16,10 +17,10 @@ class Cdesa_model extends CI_Model {
 			'nama_pemilik_luar' => 'cdesa',
 			'nama_kepemilikan' => 'cdesa'
 		];
-		foreach ($list_kolom as $kolom => $tabel)
-		{
-			$this->db->select($kolom.' as item')
+		foreach ($list_kolom as $kolom => $tabel) {
+			$this->db->select($kolom . ' as item')
 				->distinct()->from($tabel)
+				->where('desa_id', $this->config->item('desa_id'))
 				->order_by('item');
 			if ($cari) $this->db->like($kolom, $cari);
 			$sql_kolom[] = $this->db->get_compiled_select();
@@ -29,10 +30,11 @@ class Cdesa_model extends CI_Model {
 			->distinct()
 			->join('cdesa_penduduk cu', 'cu.id_cdesa = c.id', 'left')
 			->join('tweb_penduduk u', 'u.id = cu.id_pend', 'left')
+			->where('c.desa_id', $this->config->item('desa_id'))
 			->order_by('item');
-			if ($cari) $this->db->like('u.nama', $cari);
-			$sql_kolom[] = $this->db->get_compiled_select();;
-		$sql = '('.implode(') UNION (', $sql_kolom).')';
+		if ($cari) $this->db->like('u.nama', $cari);
+		$sql_kolom[] = $this->db->get_compiled_select();;
+		$sql = '(' . implode(') UNION (', $sql_kolom) . ')';
 
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
@@ -43,16 +45,15 @@ class Cdesa_model extends CI_Model {
 
 	private function search_sql()
 	{
-		if ($this->session->cari)
-		{
+		if ($this->session->cari) {
 			$cari = $this->session->cari;
 			$cari = $this->db->escape_like_str($cari);
 			$this->db
 				->group_start()
-					->like('u.nama', $cari)
-					->or_like('c.nama_kepemilikan', $cari)
-					->or_like('c.nama_kepemilikan', $cari)
-					->or_like('c.nomor', $cari)
+				->like('u.nama', $cari)
+				->or_like('c.nama_kepemilikan', $cari)
+				->or_like('c.nama_kepemilikan', $cari)
+				->or_like('c.nomor', $cari)
 				->group_end();
 		}
 	}
@@ -65,11 +66,12 @@ class Cdesa_model extends CI_Model {
 			->join('ref_persil_kelas k', 'k.id = p.kelas', 'left')
 			->join('cdesa_penduduk cu', 'cu.id_cdesa = c.id', 'left')
 			->join('tweb_penduduk u', 'u.id = cu.id_pend', 'left')
-			->join('tweb_wil_clusterdesa w', 'w.id = u.id_cluster', 'left');
+			->join('tweb_wil_clusterdesa w', 'w.id = u.id_cluster', 'left')
+			->where('c.desa_id', $this->config->item('desa_id'));
 		$this->search_sql();
 	}
 
-	public function paging_c_desa($p=1)
+	public function paging_c_desa($p = 1)
 	{
 		$this->main_sql_c_desa();
 		$jml_data = $this->db
@@ -87,7 +89,7 @@ class Cdesa_model extends CI_Model {
 		return $this->paging;
 	}
 
-	public function list_c_desa($offset=0, $per_page='', $kecuali=[])
+	public function list_c_desa($offset = 0, $per_page = '', $kecuali = [])
 	{
 		$kecuali = sql_in_list($kecuali);
 		$data = [];
@@ -101,13 +103,12 @@ class Cdesa_model extends CI_Model {
 			->order_by('cast(c.nomor as unsigned)')
 			->group_by('c.id, cu.id');
 		if ($per_page) $this->db->limit($per_page, $offset);
-  	if ($kecuali)	$this->db->where("c.id not in ($kecuali)");
+		if ($kecuali)	$this->db->where("c.id not in ($kecuali)");
 		$data = $this->db
 			->get()
 			->result_array();
 		$j = $offset;
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 			$luas_persil = $this->jumlah_luas($data[$i]['id_cdesa']);
 			$data[$i]['basah'] = $luas_persil['BASAH'];
@@ -118,7 +119,7 @@ class Cdesa_model extends CI_Model {
 	}
 
 	// Untuk cetak daftar C-Desa, menghitung jumlah luas per kelas persil
- 	// Perhitungkan kasus suatu C-Desa adalah pemilik awal keseluruhan persil
+	// Perhitungkan kasus suatu C-Desa adalah pemilik awal keseluruhan persil
 	public function jumlah_luas($id_cdesa)
 	{
 		// luas total = jumlah luas setiap persil untuk cdesa
@@ -129,11 +130,11 @@ class Cdesa_model extends CI_Model {
 			->from('persil p')
 			->join('ref_persil_kelas k', 'p.kelas = k.id')
 			->where('cdesa_awal', $id_cdesa)
+			->where('p.desa_id', $this->config->item('desa_id'))
 			->get()
 			->result_array();
 		$luas_persil = [];
-		foreach ($persil_awal as $persil)
-		{
+		foreach ($persil_awal as $persil) {
 			$luas_persil[$persil['tipe']][$persil['id']] = $persil['luas_persil'];
 		}
 		$list_mutasi = $this->db
@@ -141,24 +142,20 @@ class Cdesa_model extends CI_Model {
 			->from('mutasi_cdesa m')
 			->join('persil p', 'p.id = m.id_persil')
 			->join('ref_persil_kelas k', 'p.kelas = k.id')
+			->where('m.desa_id', $this->config->item('desa_id'))
 			->where('m.id_cdesa_masuk', $id_cdesa)
 			->or_where('m.cdesa_keluar', $id_cdesa)
 			->get('')
 			->result_array();
-		foreach ($list_mutasi as $mutasi)
-		{
-			if ($mutasi['cdesa_keluar'] == $id_cdesa)
-			{
+		foreach ($list_mutasi as $mutasi) {
+			if ($mutasi['cdesa_keluar'] == $id_cdesa) {
 				$luas_persil[$mutasi['tipe']][$mutasi['id_persil']] -= $mutasi['luas'];
-			}
-			else
-			{
+			} else {
 				$luas_persil[$mutasi['tipe']][$mutasi['id_persil']] += $mutasi['luas'];
 			}
 		}
 		$luas_total = [];
-		foreach ($luas_persil as $key => $luas)
-		{
+		foreach ($luas_persil as $key => $luas) {
 			$luas_total[$key] += array_sum($luas);
 		}
 		return $luas_total;
@@ -174,6 +171,7 @@ class Cdesa_model extends CI_Model {
 			->join('ref_persil_kelas k', 'k.id = p.kelas', 'left')
 			->join('tweb_wil_clusterdesa w', 'w.id = p.id_wilayah', 'left')
 			->where('m.id', $id_mutasi)
+			->where('m.desa_id', $this->config->item('desa_id'))
 			->get()
 			->row_array();
 		return $data;
@@ -199,6 +197,7 @@ class Cdesa_model extends CI_Model {
 			->join('cdesa_penduduk cu', 'cu.id_cdesa = c.id', 'left')
 			->join('tweb_penduduk u', 'u.id = cu.id_pend', 'left')
 			->join('tweb_wil_clusterdesa w', 'w.id = u.id_cluster', 'left')
+			->where('c.desa_id', $this->config->item('desa_id'))
 			->limit(1)
 			->get()
 			->row_array();
@@ -214,8 +213,7 @@ class Cdesa_model extends CI_Model {
 		$data['jenis_pemilik'] = $this->input->post('jenis_pemilik');
 		$data['nama_pemilik_luar'] = nama($this->input->post('nama_pemilik_luar'));
 		$data['alamat_pemilik_luar'] = strip_tags($this->input->post('alamat_pemilik_luar'));
-		if ($id_cdesa = $this->input->post('id'))
-		{
+		if ($id_cdesa = $this->input->post('id')) {
 			$data_lama = $this->db->where('id', $id_c_desa)
 				->get('cdesa')->row_array();
 			if ($data['nomor'] == $data_lama['nomor']) unset($data['nomor']);
@@ -223,21 +221,16 @@ class Cdesa_model extends CI_Model {
 			$data['updated_by'] = $this->session->user;
 			$this->db->where('id', $id_cdesa)
 				->update('cdesa', $data);
-		}
-		else
-		{
+		} else {
 			$data['created_by'] = $this->session->user;
 			$data['updated_by'] = $this->session->user;
-			$this->db->insert('cdesa', $data);
+			$this->db->insert('cdesa', $data + ['desa_id' => $this->config->item('desa_id')]);
 			$id_cdesa = $this->db->insert_id();
 		}
 
-		if ($this->input->post('jenis_pemilik') == 1)
-		{
+		if ($this->input->post('jenis_pemilik') == 1) {
 			$this->simpan_pemilik($id_cdesa, $this->input->post('id_pend'));
-		}
-		else
-		{
+		} else {
 			$this->hapus_pemilik($id_cdesa);
 		}
 		return $id_cdesa;
@@ -257,7 +250,7 @@ class Cdesa_model extends CI_Model {
 		$data = array();
 		$data['id_cdesa'] = $id_cdesa;
 		$data['id_pend'] = $id_pend;
-		$this->db->insert('cdesa_penduduk', $data);
+		$this->db->insert('cdesa_penduduk', $data + ['desa_id' => $this->config->item('desa_id')]);
 	}
 
 	public function simpan_mutasi($id_cdesa, $id_mutasi, $post)
@@ -277,15 +270,14 @@ class Cdesa_model extends CI_Model {
 		if ($id_mutasi)
 			$outp = $this->db->where('id', $id_mutasi)->update('mutasi_cdesa', $data);
 		else
-			$outp = $this->db->insert('mutasi_cdesa', $data);
-		if ($outp)
-			{
-				$_SESSION["success"] = 1;
-				$_SESSION["pesan"] = "Data Persil telah DISIMPAN";
-				$data["hasil"] = true;
-				$data["id"]= $_POST["id_persil"];
-				$data['jenis'] = $_POST["jenis"];
-			}
+			$outp = $this->db->insert('mutasi_cdesa', $data + ['desa_id' => $this->config->item('desa_id')]);
+		if ($outp) {
+			$_SESSION["success"] = 1;
+			$_SESSION["pesan"] = "Data Persil telah DISIMPAN";
+			$data["hasil"] = true;
+			$data["id"] = $_POST["id_persil"];
+			$data['jenis'] = $_POST["jenis"];
+		}
 		return $data;
 	}
 
@@ -304,7 +296,7 @@ class Cdesa_model extends CI_Model {
 			->from('cdesa c')
 			->join('cdesa_penduduk cp', 'c.id = cp.id_cdesa', 'left')
 			->join('tweb_penduduk p', 'p.id = cp.id_pend', 'left')
-			->join('tweb_keluarga k','k.id = p.id_kk', 'left')
+			->join('tweb_keluarga k', 'k.id = p.id_kk', 'left')
 			->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left')
 			->where('c.id', $id_cdesa);
 		$data = $this->db->get()->row_array();
@@ -312,7 +304,7 @@ class Cdesa_model extends CI_Model {
 		return $data;
 	}
 
-	public function get_list_mutasi($id_cdesa, $id_persil='')
+	public function get_list_mutasi($id_cdesa, $id_persil = '')
 	{
 		$nomor_cdesa = $this->db->select('nomor')
 			->where('id', $id_cdesa)
@@ -329,9 +321,10 @@ class Cdesa_model extends CI_Model {
 			->join('persil p', 'p.id = m.id_persil', 'left')
 			->join('ref_persil_kelas rk', 'p.kelas = rk.id', 'left')
 			->join('tweb_wil_clusterdesa w', 'w.id = p.id_wilayah', 'left')
+			->where('m.desa_id', $this->config->item('desa_id'))
 			->group_start()
-				->where('m.id_cdesa_masuk', $id_cdesa)
-				->or_where('m.cdesa_keluar', $id_cdesa)
+			->where('m.id_cdesa_masuk', $id_cdesa)
+			->or_where('m.cdesa_keluar', $id_cdesa)
 			->group_end()
 			->order_by('awal, tanggal_mutasi');
 		if ($id_persil)
@@ -350,10 +343,11 @@ class Cdesa_model extends CI_Model {
 			->join('mutasi_cdesa m', 'p.id = m.id_persil', 'left')
 			->join('ref_persil_kelas rk', 'p.kelas = rk.id', 'left')
 			->join('tweb_wil_clusterdesa w', 'w.id = p.id_wilayah', 'left')
+			->where('p.desa_id', $this->config->item('desa_id'))
 			->group_start()
-				->where('m.id_cdesa_masuk', $id_cdesa)
-				->or_where('m.cdesa_keluar', $id_cdesa)
-				->or_where('p.cdesa_awal', $id_cdesa)
+			->where('m.id_cdesa_masuk', $id_cdesa)
+			->or_where('m.cdesa_keluar', $id_cdesa)
+			->or_where('p.cdesa_awal', $id_cdesa)
 			->group_end()
 			->group_by('p.id')
 			->order_by('cast(p.nomor as unsigned), nomor_urut_bidang');
@@ -371,12 +365,9 @@ class Cdesa_model extends CI_Model {
 		$baris = $data->rowcount($sheet_index = $sheet);
 		$kolom = $data->colcount($sheet_index = $sheet);
 
-		for ($i=2; $i<=$baris; $i++)
-		{
+		for ($i = 2; $i <= $baris; $i++) {
 			$nik = $data->val($i, 2, $sheet);
-			$upd['id_pend'] = $this->db->select('id')->
-						where('nik', $nik)->
-						get('tweb_penduduk')->row()->id;
+			$upd['id_pend'] = $this->db->select('id')->where('nik', $nik)->get('tweb_penduduk')->row()->id;
 			$upd['nama'] = $data->val($i, 3, $sheet);
 			$upd['persil_jenis_id'] = $data->val($i, 4, $sheet);
 			$upd['id_clusterdesa'] = $data->val($i, 5, $sheet);
@@ -384,13 +375,13 @@ class Cdesa_model extends CI_Model {
 			$upd['kelas'] = $data->val($i, 7, $sheet);
 			$upd['no_sppt_pbb'] = $data->val($i, 8, $sheet);
 			$upd['persil_peruntukan_id'] = $data->val($i, 9, $sheet);
-			$outp = $this->db->insert('data_persil',$upd);
+			$outp = $this->db->insert('data_persil', $upd + ['desa_id' => $this->config->item('desa_id')]);
 		}
 
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function get_cetak_mutasi($id_cdesa, $tipe='')
+	public function get_cetak_mutasi($id_cdesa, $tipe = '')
 	{
 		// Mutasi masuk
 		$this->db
@@ -400,6 +391,7 @@ class Cdesa_model extends CI_Model {
 			->join('ref_persil_kelas rk', 'p.kelas = rk.id', 'left')
 			->join('ref_persil_mutasi rm', 'm.jenis_mutasi = rm.id', 'left')
 			->join('cdesa c', 'c.id = m.cdesa_keluar', 'left')
+			->where('m.desa_id', $this->config->item('desa_id'))
 			->where('m.id_cdesa_masuk', $id_cdesa)
 			->where('m.jenis_mutasi <> 9')
 			->where('rk.tipe', $tipe);
@@ -412,6 +404,7 @@ class Cdesa_model extends CI_Model {
 			->join('ref_persil_kelas rk', 'p.kelas = rk.id', 'left')
 			->join('ref_persil_mutasi rm', 'm.jenis_mutasi = rm.id', 'left')
 			->join('cdesa c', 'c.id = m.id_cdesa_masuk', 'left')
+			->where('m.desa_id', $this->config->item('desa_id'))
 			->where('m.cdesa_keluar', $id_cdesa)
 			->where('rk.tipe', $tipe);
 		$sql_keluar = $this->db->get_compiled_select();
@@ -420,26 +413,22 @@ class Cdesa_model extends CI_Model {
 			->select('"" as tanggal_mutasi, 0 as luas, 0 as id_cdesa_keluar, p.id as id_persil, p.nomor as nopersil, p.nomor_urut_bidang, p.cdesa_awal, p.luas_persil, 0 as cdesa_masuk, 0 as cdesa_keluar, rk.kode as kelas_tanah, "" as sebabmutasi')
 			->from('persil p')
 			->join('ref_persil_kelas rk', 'p.kelas = rk.id', 'left')
+			->where('p.desa_id', $this->config->item('desa_id'))
 			->where('p.cdesa_awal', $id_cdesa)
 			->where('rk.tipe', $tipe);
 		$sql_cdesa_awal = $this->db->get_compiled_select();
-		$sql = '('.$sql_masuk.') UNION ('.$sql_keluar.') UNION ('.$sql_cdesa_awal.') ORDER BY nopersil, nomor_urut_bidang, cdesa_awal DESC, tanggal_mutasi';
+		$sql = '(' . $sql_masuk . ') UNION (' . $sql_keluar . ') UNION (' . $sql_cdesa_awal . ') ORDER BY nopersil, nomor_urut_bidang, cdesa_awal DESC, tanggal_mutasi';
 		$data = $this->db->query($sql)->result_array();
 
 		$persil_ini = 0;
-		foreach ($data as $key => $mutasi)
-		{
-			if ($persil_ini <> $mutasi['id_persil'] and $id_cdesa == $mutasi['cdesa_awal'])
-			{
+		foreach ($data as $key => $mutasi) {
+			if ($persil_ini <> $mutasi['id_persil'] and $id_cdesa == $mutasi['cdesa_awal']) {
 				// Cek kalau memiliki keseluruhan persil sekali saja untuk setiap persil
 				// Data terurut berdasarkan persil
 				$data[$key]['luas'] = $data[$key]['luas_persil'];
 				$data[$key]['mutasi'] = '<p>Memiliki keseluruhan persil sejak awal</p>';
-			}
-			else
-			{
-				if ($persil_ini == $mutasi['id_persil'])
-				{
+			} else {
+				if ($persil_ini == $mutasi['id_persil']) {
 					// Tidak ulangi info persil
 					$data[$key]['nopersil'] = '';
 					$data[$key]['kelas_tanah'] = '';
@@ -457,21 +446,22 @@ class Cdesa_model extends CI_Model {
 		$div = $keluar ? 'class="out"' : null;
 		$hasil = "<p $div>";
 		$hasil .= $mutasi['sebabmutasi'];
-		$hasil .= $keluar ? ' ke C No '.str_pad($mutasi['cdesa_keluar'], 4, '0', STR_PAD_LEFT) : ' dari C No '.str_pad($mutasi['cdesa_masuk'], 4, '0', STR_PAD_LEFT);
-		$hasil .= !empty($mutasi['luas']) ? ", Seluas ".number_format($mutasi['luas'])." m<sup>2</sup>, " : null;
-		$hasil .= !empty($mutasi['tanggal_mutasi']) ? tgl_indo_out($mutasi['tanggal_mutasi'])."<br />" : null;
-		$hasil .= !empty($mutasi['keterangan']) ? $mutasi['keterangan']: null;
+		$hasil .= $keluar ? ' ke C No ' . str_pad($mutasi['cdesa_keluar'], 4, '0', STR_PAD_LEFT) : ' dari C No ' . str_pad($mutasi['cdesa_masuk'], 4, '0', STR_PAD_LEFT);
+		$hasil .= !empty($mutasi['luas']) ? ", Seluas " . number_format($mutasi['luas']) . " m<sup>2</sup>, " : null;
+		$hasil .= !empty($mutasi['tanggal_mutasi']) ? tgl_indo_out($mutasi['tanggal_mutasi']) . "<br />" : null;
+		$hasil .= !empty($mutasi['keterangan']) ? $mutasi['keterangan'] : null;
 		$hasil .= "</p>";
 		return $hasil;
 	}
 
 	// TODO: apakah bisa diambil dari penduduk_model?
-	public function get_penduduk($id, $nik=false)
+	public function get_penduduk($id, $nik = false)
 	{
 		$this->db->select('p.id, p.nik,p.nama,k.no_kk,w.rt,w.rw,w.dusun')
 			->from('tweb_penduduk p')
-			->join('tweb_keluarga k','k.id = p.id_kk', 'left')
-			->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left');
+			->join('tweb_keluarga k', 'k.id = p.id_kk', 'left')
+			->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left')
+			->where('p.desa_id', $this->config->item('desa_id'));
 		if ($nik)
 			$this->db->where('p.nik', $id);
 		else
@@ -487,32 +477,24 @@ class Cdesa_model extends CI_Model {
 			LEFT JOIN tweb_keluarga k ON k.id = p.id_kk
 			LEFT JOIN tweb_wil_clusterdesa w ON w.id = p.id_cluster
 			WHERE 1 ORDER BY nama";
-		$query = $this->db->query($strSQL);
+		$query = $this->db->query($strSQL)->where('p.desa_id', $this->config->item('desa_id'));
 		$data = "";
 		$data = $query->result_array();
-		if ($query->num_rows() > 0)
-		{
+		if ($query->num_rows() > 0) {
 			$j = 0;
-			for ($i=0; $i<count($data); $i++)
-			{
-				if ($data[$i]['nik'] != "")
-				{
-					$data1[$j]['id']=$data[$i]['nik'];
-					$data1[$j]['nik']=$data[$i]['nik'];
-					$data1[$j]['nama']=strtoupper($data[$i]['nama'])." [NIK: ".$data[$i]['nik']."] / [NO KK: ".$data[$i]["no_kk"]."]";
-					$data1[$j]['info']= "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+			for ($i = 0; $i < count($data); $i++) {
+				if ($data[$i]['nik'] != "") {
+					$data1[$j]['id'] = $data[$i]['nik'];
+					$data1[$j]['nik'] = $data[$i]['nik'];
+					$data1[$j]['nama'] = strtoupper($data[$i]['nama']) . " [NIK: " . $data[$i]['nik'] . "] / [NO KK: " . $data[$i]["no_kk"] . "]";
+					$data1[$j]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 					$j++;
 				}
 			}
 			$hasil2 = $data1;
-		}
-		else
-		{
+		} else {
 			$hasil2 = false;
 		}
 		return $hasil2;
 	}
-
-
 }
-?>

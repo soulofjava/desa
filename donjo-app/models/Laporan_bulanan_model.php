@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -45,7 +45,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @link 	https://github.com/OpenSID/OpenSID
  */
 
-class Laporan_bulanan_model extends CI_Model {
+class Laporan_bulanan_model extends CI_Model
+{
 
 	protected $awal;
 	protected $lahir;
@@ -91,15 +92,12 @@ class Laporan_bulanan_model extends CI_Model {
 		$query = $this->db->query($sql);
 		$ada = $query->result_array();
 
-		if (!$ada)
-		{
+		if (!$ada) {
 			$this->db->insert('log_bulanan', $data);
-		}
-		else
-		{
+		} else {
 			$this->db
-					->where("month(tgl) = $bln AND year(tgl) = $thn")
-					->update('log_bulanan', $data);
+				->where("month(tgl) = $bln AND year(tgl) = $thn")
+				->update('log_bulanan', $data);
 		}
 		$this->session->log_bulanan = true;
 	}
@@ -107,9 +105,8 @@ class Laporan_bulanan_model extends CI_Model {
 	private function dusun_sql()
 	{
 		$dusun = $_SESSION['dusun'];
-		if ( ! empty($dusun))
-		{
-			return " AND dusun = '" .$dusun. "'";
+		if (!empty($dusun)) {
+			return " AND dusun = '" . $dusun . "'";
 		}
 	}
 
@@ -143,8 +140,7 @@ class Laporan_bulanan_model extends CI_Model {
 		$data = $query->result_array();
 		//	$data = null;
 		//Formating Output
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $i + 1;
 			$data[$i]['tabel'] = $data[$i]['rt'];
 		}
@@ -189,15 +185,14 @@ class Laporan_bulanan_model extends CI_Model {
 			->select('sum(case when kk_level = 1  and kode_peristiwa not in (1,5) then 1 else 0 end) AS KK_PLUS')
 			->select('sum(case when kk_level = 1 and sex = 1 and kode_peristiwa not in (1,5) then 1 else 0 end) AS KK_L_MINUS')
 			->select('sum(case when kk_level = 1 and sex = 2 and kode_peristiwa not in (1,5) then 1 else 0 end) AS KK_P_MINUS')
-			->from('('.$penduduk_mutasi_sql.') as m')
+			->from('(' . $penduduk_mutasi_sql . ') as m')
 			->get()
 			->row_array();
 
 		$data = [];
 		$kategori = ['WNI_L', 'WNI_P', 'WNA_L', 'WNA_P', 'KK', 'KK_L', 'KK_P'];
-		foreach ($kategori as $k)
-		{
-			$data[$k] = $penduduk_mutasi[$k.'_PLUS'] - $penduduk_mutasi[$k.'_MINUS'];
+		foreach ($kategori as $k) {
+			$data[$k] = $penduduk_mutasi[$k . '_PLUS'] - $penduduk_mutasi[$k . '_MINUS'];
 		}
 		$data['tahun'] = $thn;
 		$data['bulan'] = $bln;
@@ -211,8 +206,7 @@ class Laporan_bulanan_model extends CI_Model {
 	{
 		$data = [];
 		$kategori = ['WNI_L', 'WNI_P', 'WNA_L', 'WNA_P', 'KK', 'KK_L', 'KK_P'];
-		foreach ($kategori as $k)
-		{
+		foreach ($kategori as $k) {
 			$data[$k] = $this->awal[$k] + $this->lahir[$k] + $this->datang[$k] - $this->mati[$k] - $this->pindah[$k] - $this->hilang[$k];
 		}
 		$data['tahun'] = $thn;
@@ -258,7 +252,7 @@ class Laporan_bulanan_model extends CI_Model {
 			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn) AS KK")
 			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 1) AS KK_L")
 			->select("(SELECT COUNT(id) FROM log_keluarga k WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 2) AS KK_P")
-			->from('('.$mutasi_pada_bln_thn.') as m')
+			->from('(' . $mutasi_pada_bln_thn . ') as m')
 			->get()
 			->row_array();
 
@@ -278,7 +272,7 @@ class Laporan_bulanan_model extends CI_Model {
 			->select('sum(case when kk_level = 1 then 1 else 0 end) AS KK')
 			->select('sum(case when kk_level = 1 and sex = 1 then 1 else 0 end) AS KK_L')
 			->select('sum(case when kk_level = 1 and sex = 2 then 1 else 0 end) AS KK_P')
-			->from('('.$mutasi_pada_bln_thn.') as m')
+			->from('(' . $mutasi_pada_bln_thn . ') as m')
 			->get()
 			->row_array();
 
@@ -322,7 +316,7 @@ class Laporan_bulanan_model extends CI_Model {
 			->select('sum(case when sex = 1 and ref_pindah = 4 and kk_level = 1 then 1 else 0 end) AS PROV_KK_L')
 			->select('sum(case when sex = 2 and ref_pindah = 4 and kk_level = 1 then 1 else 0 end) AS PROV_KK_P')
 
-			->from('('.$mutasi_pada_bln_thn.') as m')
+			->from('(' . $mutasi_pada_bln_thn . ') as m')
 			->get()
 			->row_array();
 
@@ -344,7 +338,4 @@ class Laporan_bulanan_model extends CI_Model {
 		$this->hilang = $this->mutasi_peristiwa(4);
 		return $this->hilang;
 	}
-
 }
-
-?>
