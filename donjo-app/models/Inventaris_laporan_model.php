@@ -14,7 +14,8 @@ class Inventaris_laporan_model extends CI_Model
 	{
 		$this->db->select('*');
 		$this->db->from($this->table_pamong);
-		$this->db->where($this->table_pamong.'.pamong_id', $pamong);
+		$this->db->where($this->table_pamong . '.pamong_id', $pamong);
+		$this->db->where($this->table_pamong . '.desa_id', $this->config->item('desa_id'));
 		$data = $this->db->get()->row();
 		return $data;
 	}
@@ -59,12 +60,12 @@ class Inventaris_laporan_model extends CI_Model
 			array('inventaris_kontruksi_sumbangan', 'inventaris_kontruksi', 'Sumbangan')
 		);
 		$result = array();
-		foreach ($laporan_inventaris as $inventaris)
-		{
+		foreach ($laporan_inventaris as $inventaris) {
 			$this->db->select("count($inventaris[1].asal) as total");
 			$this->db->where("$inventaris[1].visible", 1);
 			$this->db->where("$inventaris[1].status", 0);
 			$this->db->where("$inventaris[1].asal", $inventaris[2]);
+			$this->db->where("$inventaris[1].desa_id", $this->config->item('desa_id'));
 			$hasil = $this->db->get($inventaris[1])->row();
 			$result[$inventaris[0]] = !empty($hasil) ? $hasil : 0;
 		}
@@ -111,11 +112,11 @@ class Inventaris_laporan_model extends CI_Model
 			array('inventaris_kontruksi_sumbangan', 'inventaris_kontruksi', 'Sumbangan')
 		);
 		$result = array();
-		foreach ($laporan_inventaris as $inventaris)
-		{
+		foreach ($laporan_inventaris as $inventaris) {
 			$this->db->select("count($inventaris[1].asal) as total");
 			$this->db->where("$inventaris[1].status", 1);
 			$this->db->where("$inventaris[1].asal", $inventaris[2]);
+			$this->db->where("$inventaris[1].desa_id", $this->config->item('desa_id'));
 			$hasil = $this->db->get($inventaris[1])->row();
 			$result[$inventaris[0]] = !empty($hasil) ? $hasil : 0;
 		}
@@ -162,19 +163,15 @@ class Inventaris_laporan_model extends CI_Model
 			array('cetak_inventaris_kontruksi_sumbangan', 'inventaris_kontruksi', 'Sumbangan', 'tanggal_dokument')
 		);
 		$result = array();
-		foreach ($cetak_inventaris as $inventaris)
-		{
+		foreach ($cetak_inventaris as $inventaris) {
 			$this->db->select("count($inventaris[1].asal) as total");
 			$this->db->where("$inventaris[1].visible", 1);
 			$this->db->where("$inventaris[1].status", 0);
-			if ($tahun != 1)
-			{
-				if ($inventaris[3] == 'tahun_pengadaan')
-				{
+			$this->db->where("$inventaris[1].desa_id", $this->config->item('desa_id'));
+			if ($tahun != 1) {
+				if ($inventaris[3] == 'tahun_pengadaan') {
 					$this->db->where("$inventaris[1].tahun_pengadaan", $tahun);
-				}
-				else
-				{
+				} else {
 					$this->db->where('year(tanggal_dokument)', $tahun);
 				}
 			}
@@ -225,18 +222,14 @@ class Inventaris_laporan_model extends CI_Model
 			array('cetak_inventaris_kontruksi_sumbangan', 'inventaris_kontruksi', 'Sumbangan', 'tanggal_dokument')
 		);
 		$result = array();
-		foreach ($cetak_inventaris as $inventaris)
-		{
+		foreach ($cetak_inventaris as $inventaris) {
 			$this->db->select("count($inventaris[1].asal) as total");
 			$this->db->where("$inventaris[1].status", 1);
-			if ($tahun != 1)
-			{
-				if ($inventaris[3] == 'tahun_pengadaan')
-				{
+			$this->db->where("$inventaris[1].desa_id", $this->config->item('desa_id'));
+			if ($tahun != 1) {
+				if ($inventaris[3] == 'tahun_pengadaan') {
 					$this->db->where("$inventaris[1].tahun_pengadaan", $tahun);
-				}
-				else
-				{
+				} else {
 					$this->db->where('year(tanggal_dokument)', $tahun);
 				}
 			}
@@ -246,25 +239,4 @@ class Inventaris_laporan_model extends CI_Model
 		}
 		return $result;
 	}
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
