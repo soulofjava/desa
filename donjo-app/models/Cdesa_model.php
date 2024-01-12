@@ -224,7 +224,7 @@ class Cdesa_model extends CI_Model
 		} else {
 			$data['created_by'] = $this->session->user;
 			$data['updated_by'] = $this->session->user;
-			$this->db->insert('cdesa', $data);
+			$this->db->insert('cdesa', $data + ['desa_id' => $this->config->item('desa_id')]);
 			$id_cdesa = $this->db->insert_id();
 		}
 
@@ -250,7 +250,7 @@ class Cdesa_model extends CI_Model
 		$data = array();
 		$data['id_cdesa'] = $id_cdesa;
 		$data['id_pend'] = $id_pend;
-		$this->db->insert('cdesa_penduduk', $data);
+		$this->db->insert('cdesa_penduduk', $data + ['desa_id' => $this->config->item('desa_id')]);
 	}
 
 	public function simpan_mutasi($id_cdesa, $id_mutasi, $post)
@@ -270,7 +270,7 @@ class Cdesa_model extends CI_Model
 		if ($id_mutasi)
 			$outp = $this->db->where('id', $id_mutasi)->update('mutasi_cdesa', $data);
 		else
-			$outp = $this->db->insert('mutasi_cdesa', $data);
+			$outp = $this->db->insert('mutasi_cdesa', $data + ['desa_id' => $this->config->item('desa_id')]);
 		if ($outp) {
 			$_SESSION["success"] = 1;
 			$_SESSION["pesan"] = "Data Persil telah DISIMPAN";
@@ -375,7 +375,7 @@ class Cdesa_model extends CI_Model
 			$upd['kelas'] = $data->val($i, 7, $sheet);
 			$upd['no_sppt_pbb'] = $data->val($i, 8, $sheet);
 			$upd['persil_peruntukan_id'] = $data->val($i, 9, $sheet);
-			$outp = $this->db->insert('data_persil', $upd);
+			$outp = $this->db->insert('data_persil', $upd + ['desa_id' => $this->config->item('desa_id')]);
 		}
 
 		status_sukses($outp); //Tampilkan Pesan
