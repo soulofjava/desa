@@ -31,7 +31,7 @@
 			unset($_SESSION['validation_error']);
 			$data['status'] = 2;
 			$data['id_artikel'] = 775; //id_artikel untuk laporan layanan mandiri
-			$outp = $this->db->insert('komentar', $data + ['desa_id' => $this->config->item('desa_id')]);
+			$outp = $this->db->insert('komentar', $data);
 		} else {
 			$_SESSION['validation_error'] = 'Form tidak terisi dengan benar';
 			$_SESSION['success'] = -1;
@@ -42,7 +42,7 @@
 
 	public function autocomplete()
 	{
-		$sql = "SELECT ref_syarat_nama FROM ref_syarat_surat WHERE desa_id = " . $this->config->item('desa_id');
+		$sql = "SELECT ref_syarat_nama FROM ref_syarat_surat";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 
@@ -90,7 +90,7 @@
 
 	private function list_data_sql()
 	{
-		$sql = " FROM ref_syarat_surat u, ref_syarat_surat g WHERE u.ref_syarat_id = g.ref_syarat_id AND u.desa_id = " . $this->config->item('desa_id');
+		$sql = " FROM ref_syarat_surat u, ref_syarat_surat g WHERE u.ref_syarat_id = g.ref_syarat_id ";
 		$sql .= $this->search_sql();
 		$sql .= $this->filter_sql();
 		return $sql;
@@ -147,7 +147,7 @@
 
 		$data['ref_syarat_nama'] = strip_tags($data['ref_syarat_nama']);
 
-		if (!$this->db->insert('ref_syarat_surat', $data + ['desa_id' => $this->config->item('desa_id')])) {
+		if (!$this->db->insert('ref_syarat_surat', $data)) {
 			$_SESSION['success'] = -1;
 			$_SESSION['error_msg'] = ' -> Gagal memperbarui data di database';
 		}
@@ -190,7 +190,7 @@
 
 	public function get_surat($id = 0)
 	{
-		$sql = "SELECT * FROM ref_syarat_surat WHERE ref_syarat_id = ? AND desa_id - " . $this->config->item('desa_id');
+		$sql = "SELECT * FROM ref_syarat_surat WHERE ref_syarat_id = ?";
 		$query = $this->db->query($sql, $id);
 		$data = $query->row_array();
 		return $data;
@@ -199,7 +199,7 @@
 	public function get_surat_ref_all()
 	{
 		$this->db->select('*')
-			->from('ref_syarat_surat')->where('desa_id', $this->config->item('desa_id'));
+			->from('ref_syarat_surat');
 		$query = $this->db->get();
 		return $query->result_array();
 	}
@@ -210,7 +210,6 @@
 			->from('tweb_surat_format')
 			->join('syarat_surat', "tweb_surat_format.id = syarat_surat.surat_format_id")
 			->join('ref_syarat_surat', "ref_syarat_surat.ref_syarat_id = syarat_surat.ref_syarat_id")
-			->where('desa_id', $this->config->item('desa_id'))
 			->where('syarat_surat.surat_format_id', $id);
 		$query = $this->db->get();
 		return $query->result_array();
@@ -228,7 +227,7 @@
 			// Tambahkan syarat baru yg dipilih
 			foreach ($syarat_surat as $syarat) {
 				$data = array('ref_syarat_id' => $syarat, 'surat_format_id' => $surat_format_id);
-				$result = $this->db->insert('syarat_surat', $data + ['desa_id' => $this->config->item('desa_id')]);
+				$result = $this->db->insert('syarat_surat', $data);
 			}
 		}
 	}

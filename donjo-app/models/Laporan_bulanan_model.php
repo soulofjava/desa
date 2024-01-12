@@ -69,31 +69,31 @@ class Laporan_bulanan_model extends CI_Model
 		// Jangan hitung keluarga yang tidak ada Kepala Keluarga
 		// Anggap warganegara_id = 0, 1 atau 3 adalah WNI
 		$sql = "SELECT
-			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND desa_id = " . $this->config->item('desa_id') . ") AS pend,
-			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND desa_id = " . $this->config->item('desa_id') . " AND sex =1 AND warganegara_id <> 2) AS wni_lk,
-			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND desa_id = " . $this->config->item('desa_id') . " AND sex =2 AND warganegara_id <> 2) AS wni_pr,
-			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND desa_id = " . $this->config->item('desa_id') . " AND sex =1 AND warganegara_id = 2) AS wna_lk,
-			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND desa_id = " . $this->config->item('desa_id') . " AND sex =2 AND warganegara_id = 2) AS wna_pr,
+			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1) AS pend,
+			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND sex =1 AND warganegara_id <> 2) AS wni_lk,
+			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND sex =2 AND warganegara_id <> 2) AS wni_pr,
+			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND sex =1 AND warganegara_id = 2) AS wna_lk,
+			(SELECT COUNT(id) FROM tweb_penduduk WHERE status_dasar =1 AND sex =2 AND warganegara_id = 2) AS wna_pr,
 			(SELECT COUNT(p.id) FROM tweb_keluarga k
 				LEFT JOIN tweb_penduduk p ON k.nik_kepala = p.id
-				WHERE p.status_dasar = 1 AND p.desa_id = " . $this->config->item('desa_id') . "
+				WHERE p.status_dasar = 1
 					AND k.nik_kepala IS NOT NULL AND k.nik_kepala <> 0) AS kk,
 			(SELECT COUNT(k.id) FROM tweb_keluarga k LEFT JOIN tweb_penduduk p ON k.nik_kepala = p.id
-				WHERE p.sex = 1 AND p.desa_id = " . $this->config->item('desa_id') . " AND p.status_dasar = 1) AS kk_lk,
+				WHERE p.sex = 1 AND p.status_dasar = 1) AS kk_lk,
 			(SELECT COUNT(k.id) FROM tweb_keluarga k LEFT JOIN tweb_penduduk p ON k.nik_kepala = p.id
-				WHERE p.sex = 2 AND p.desa_id = " . $this->config->item('desa_id') . "  AND p.status_dasar = 1) AS kk_pr";
+				WHERE p.sex = 2  AND p.status_dasar = 1) AS kk_pr";
 		$query = $this->db->query($sql);
 		$data = $query->row_array();
 
 		$bln = date("m");
 		$thn = date("Y");
 
-		$sql = "SELECT * FROM log_bulanan WHERE month(tgl) = $bln AND year(tgl) = $thn AND desa_id = " . $this->config->item('desa_id');
+		$sql = "SELECT * FROM log_bulanan WHERE month(tgl) = $bln AND year(tgl) = $thn";
 		$query = $this->db->query($sql);
 		$ada = $query->result_array();
 
 		if (!$ada) {
-			$this->db->insert('log_bulanan', $data + ['desa_id' => $this->config->item('desa_id')]);
+			$this->db->insert('log_bulanan', $data);
 		} else {
 			$this->db
 				->where("month(tgl) = $bln AND year(tgl) = $thn")
@@ -135,7 +135,7 @@ class Laporan_bulanan_model extends CI_Model
 			from  tweb_wil_clusterdesa c WHERE rw<>'0' AND rt<>'0' AND (select count(id) from tweb_penduduk where id_cluster=c.id)>0 ";
 
 		$sql .= $this->dusun_sql();
-		$sql .= "WHERE c.desa_id = " . $this->config->item('desa_id') . " ORDER BY c.dusun,c.rw,c.rt ";
+		$sql .= " ORDER BY c.dusun,c.rw,c.rt ";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 		//	$data = null;
@@ -166,7 +166,6 @@ class Laporan_bulanan_model extends CI_Model
 			->select('p.*, l.kode_peristiwa')
 			->from('log_penduduk l')
 			->join('tweb_penduduk p', 'l.id_pend = p.id')
-			->where('desa_id', $this->config->item('desa_id'))
 			->where("DATE_FORMAT(l.tgl_lapor, '%Y-%m') < '{$thn}-{$pad_bln}'");
 
 		$penduduk_mutasi_sql = $this->db->get_compiled_select();
@@ -227,7 +226,6 @@ class Laporan_bulanan_model extends CI_Model
 			->from('log_penduduk l')
 			->join('tweb_penduduk p', 'l.id_pend = p.id')
 			->where('year(l.tgl_lapor)', $thn)
-			->where('desa_id', $this->config->item('desa_id'))
 			->where('month(l.tgl_lapor)', $bln)
 			->where('l.kode_peristiwa', $kode_peristiwa);
 
@@ -251,9 +249,9 @@ class Laporan_bulanan_model extends CI_Model
 			->select('sum(case when sex = 2 and warganegara_id <> 2 then 1 else 0 end) AS WNI_P')
 			->select('sum(case when sex = 1 and warganegara_id = 2 then 1 else 0 end) AS WNA_L')
 			->select('sum(case when sex = 2 and warganegara_id = 2 then 1 else 0 end) AS WNA_P')
-			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND desa_id = " . $this->config->item('desa_id') . " AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn) AS KK")
-			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND desa_id = " . $this->config->item('desa_id') . " AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 1) AS KK_L")
-			->select("(SELECT COUNT(id) FROM log_keluarga k WHERE id_peristiwa = 1 AND desa_id = " . $this->config->item('desa_id') . " AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 2) AS KK_P")
+			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn) AS KK")
+			->select("(SELECT COUNT(id) FROM log_keluarga WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 1) AS KK_L")
+			->select("(SELECT COUNT(id) FROM log_keluarga k WHERE id_peristiwa = 1 AND month(tgl_peristiwa) = $bln AND year(tgl_peristiwa) = $thn AND kk_sex = 2) AS KK_P")
 			->from('(' . $mutasi_pada_bln_thn . ') as m')
 			->get()
 			->row_array();

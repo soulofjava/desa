@@ -1,6 +1,7 @@
-<?php class Statistik_penduduk_model extends Laporan_penduduk_model {
+<?php class Statistik_penduduk_model extends Laporan_penduduk_model
+{
 
-/* Gunakan model ini untuk mulai refactor statistik penduduk
+	/* Gunakan model ini untuk mulai refactor statistik penduduk
  * Mungkin bisa gunakan anonymous classes yg disediakan di PHP 7.x
  * Usahakan supaya di Laporan_penduduk_model juga menggunakan query builder Codeigniter
 */
@@ -13,8 +14,7 @@
 
 	public function statistik($lap)
 	{
-		switch (true)
-		{
+		switch (true) {
 			case ($lap == 'bantuan_penduduk'):
 				$statistik = new Penduduk_penerima_bantuan();
 				break;
@@ -24,8 +24,7 @@
 			case ($lap > 50):
 				$program_id = preg_replace('/^50/', '', $lap);
 				$program = $this->program_bantuan_model->get_sasaran($program_id);
-				switch ($program['sasaran'])
-				{
+				switch ($program['sasaran']) {
 					case 1:
 						$statistik = new Bantuan_penduduk($program_id);
 						break;
@@ -52,28 +51,30 @@
  * ==============================================================
  */
 
-class Penduduk_penerima_bantuan extends Statistik_penduduk_model {
+class Penduduk_penerima_bantuan extends Statistik_penduduk_model
+{
 
 	public $judul_jumlah = 'PENERIMA';
 	public $judul_belum = 'BUKAN PENERIMA';
 
-  function __construct()
-  {
-    parent::__construct();
-  }
+	function __construct()
+	{
+		parent::__construct();
+	}
 
 	public function select_per_kategori()
 	{
 		// Ambil data sasaran penduduk
 		$this->db->select('u.id, u.nama')
 			->select('COUNT(pp.id) AS jumlah')
-		  ->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
-		  ->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
+			->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
+			->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
 			->from('program u')
 			->join('program_peserta pp', 'u.id = pp.program_id', 'left')
 			->join('tweb_penduduk p', 'pp.peserta = p.nik', 'left')
 			->join('tweb_wil_clusterdesa a', 'p.id_cluster = a.id')
 			->where('u.sasaran', '1')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->where('u.status', '1')
 			->order_by('u.nama')
 			->group_by('u.id');
@@ -102,22 +103,23 @@ class Penduduk_penerima_bantuan extends Statistik_penduduk_model {
 			->join('program_peserta pp', 'pp.program_id = u.id', 'left')
 			->join('tweb_penduduk p', 'pp.peserta = p.nik', 'left')
 			->where('u.sasaran', '1')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->where('u.status', '1')
 			->get()->row_array();
 		return $data;
 	}
-
 }
 
-class Keluarga_penerima_bantuan extends Statistik_penduduk_model {
+class Keluarga_penerima_bantuan extends Statistik_penduduk_model
+{
 
 	public $judul_jumlah = 'PENERIMA';
 	public $judul_belum = 'BUKAN PENERIMA';
 
-  function __construct()
-  {
-    parent::__construct();
-  }
+	function __construct()
+	{
+		parent::__construct();
+	}
 
 	public function select_per_kategori()
 	{
@@ -131,6 +133,7 @@ class Keluarga_penerima_bantuan extends Statistik_penduduk_model {
 			->join('tweb_keluarga k', 'pp.peserta = k.no_kk', 'left')
 			->join('tweb_penduduk p', 'k.nik_kepala = p.id', 'left')
 			->where('u.sasaran', '2')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->where('u.status', '1')
 			->group_by('u.id');
 		return true;
@@ -155,24 +158,25 @@ class Keluarga_penerima_bantuan extends Statistik_penduduk_model {
 			->join('tweb_keluarga k', 'pp.peserta = k.no_kk', 'left')
 			->join('tweb_penduduk p', 'k.nik_kepala = p.id', 'left')
 			->where('u.sasaran', '2')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->where('u.status', '1')
 			->get()->row_array();
 		return $data;
 	}
-
 }
 
-class Bantuan_penduduk extends Statistik_penduduk_model {
+class Bantuan_penduduk extends Statistik_penduduk_model
+{
 
 	public $judul_jumlah = 'PESERTA';
 	public $judul_belum = 'BUKAN PESERTA';
 	private $program_id;
 
-  function __construct($program_id)
-  {
-    parent::__construct();
-    $this->program_id = $program_id;
-  }
+	function __construct($program_id)
+	{
+		parent::__construct();
+		$this->program_id = $program_id;
+	}
 
 	public function select_per_kategori()
 	{
@@ -190,8 +194,8 @@ class Bantuan_penduduk extends Statistik_penduduk_model {
 		// Ambil data sasaran penduduk
 		$data = $this->db
 			->select('COUNT(pp.id) AS jumlah')
-		  ->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
-		  ->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
+			->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
+			->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
 			->select('COUNT(DISTINCT(CASE WHEN p.status_dasar <> 1 THEN pp.id END))as jumlah_nonaktif')
 			->select('COUNT(DISTINCT(CASE WHEN p.status_dasar <> 1 AND p.sex = 1 THEN pp.id END)) AS jumlah_nonaktif_laki')
 			->select('COUNT(DISTINCT(CASE WHEN p.status_dasar <> 1 AND p.sex = 2 THEN pp.id END)) AS jumlah_nonaktif_perempuan')
@@ -199,22 +203,24 @@ class Bantuan_penduduk extends Statistik_penduduk_model {
 			->join('tweb_penduduk p', 'pp.peserta = p.nik', 'left')
 			->join('tweb_wil_clusterdesa a', 'p.id_cluster = a.id')
 			->where('pp.program_id', $this->program_id)
+			->where('pp.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 		return $data;
 	}
 }
 
-class Bantuan_keluarga extends Statistik_penduduk_model {
+class Bantuan_keluarga extends Statistik_penduduk_model
+{
 
 	public $judul_jumlah = 'PESERTA';
 	public $judul_belum = 'BUKAN PESERTA';
 	private $program_id;
 
-  function __construct($program_id)
-  {
-    parent::__construct();
-    $this->program_id = $program_id;
-  }
+	function __construct($program_id)
+	{
+		parent::__construct();
+		$this->program_id = $program_id;
+	}
 
 	public function select_per_kategori()
 	{
@@ -232,8 +238,8 @@ class Bantuan_keluarga extends Statistik_penduduk_model {
 		// Ambil data sasaran keluarga
 		$data = $this->db
 			->select('COUNT(pp.id) AS jumlah')
-		  ->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
-		  ->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
+			->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
+			->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
 			->select('COUNT(DISTINCT(CASE WHEN p.status_dasar <> 1 THEN pp.id END))as jumlah_nonaktif')
 			->select('COUNT(DISTINCT(CASE WHEN p.status_dasar <> 1 AND p.sex = 1 THEN pp.id END)) AS jumlah_nonaktif_laki')
 			->select('COUNT(DISTINCT(CASE WHEN p.status_dasar <> 1 AND p.sex = 2 THEN pp.id END)) AS jumlah_nonaktif_perempuan')
@@ -242,22 +248,24 @@ class Bantuan_keluarga extends Statistik_penduduk_model {
 			->join('tweb_penduduk p', 'k.nik_kepala = p.id', 'left')
 			->join('tweb_wil_clusterdesa a', 'p.id_cluster = a.id')
 			->where('pp.program_id', $this->program_id)
+			->where('pp.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 		return $data;
 	}
 }
 
-class Bantuan_rumah_tangga extends Statistik_penduduk_model {
+class Bantuan_rumah_tangga extends Statistik_penduduk_model
+{
 
 	public $judul_jumlah = 'PESERTA';
 	public $judul_belum = 'BUKAN PESERTA';
 	private $program_id;
 
-  function __construct($program_id)
-  {
-    parent::__construct();
-    $this->program_id = $program_id;
-  }
+	function __construct($program_id)
+	{
+		parent::__construct();
+		$this->program_id = $program_id;
+	}
 
 	public function select_per_kategori()
 	{
@@ -269,11 +277,12 @@ class Bantuan_rumah_tangga extends Statistik_penduduk_model {
 	{
 		$data = $this->db
 			->select('COUNT(r.id) AS jumlah')
-		  ->select('COUNT(CASE WHEN p.sex = 1 THEN r.id END) AS laki')
-		  ->select('COUNT(CASE WHEN p.sex = 2 THEN r.id END) AS perempuan')
+			->select('COUNT(CASE WHEN p.sex = 1 THEN r.id END) AS laki')
+			->select('COUNT(CASE WHEN p.sex = 2 THEN r.id END) AS perempuan')
 			->from('tweb_rtm r')
 			->join('tweb_penduduk p', 'r.nik_kepala = p.id', 'left')
 			->join('tweb_wil_clusterdesa a', 'p.id_cluster = a.id')
+			->where('r.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 		return $data;
 	}
@@ -283,29 +292,31 @@ class Bantuan_rumah_tangga extends Statistik_penduduk_model {
 		// Ambil data sasaran rumah tangga
 		$data = $this->db
 			->select('COUNT(pp.id) AS jumlah')
-		  ->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
-		  ->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
+			->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
+			->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
 			->from('program_peserta pp')
 			->join('tweb_rtm r', 'r.no_kk = pp.peserta', 'left')
 			->join('tweb_penduduk p', 'r.nik_kepala = p.id', 'left')
 			->join('tweb_wil_clusterdesa a', 'p.id_cluster = a.id')
 			->where('pp.program_id', $this->program_id)
+			->where('pp.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 		return $data;
 	}
 }
 
-class Bantuan_kelompok extends Statistik_penduduk_model {
+class Bantuan_kelompok extends Statistik_penduduk_model
+{
 
 	public $judul_jumlah = 'PESERTA';
 	public $judul_belum = 'BUKAN PESERTA';
 	private $program_id;
 
-  function __construct($program_id)
-  {
-    parent::__construct();
-    $this->program_id = $program_id;
-  }
+	function __construct($program_id)
+	{
+		parent::__construct();
+		$this->program_id = $program_id;
+	}
 
 	public function select_per_kategori()
 	{
@@ -317,11 +328,12 @@ class Bantuan_kelompok extends Statistik_penduduk_model {
 	{
 		$data = $this->db
 			->select('COUNT(k.id) AS jumlah')
-		  ->select('COUNT(CASE WHEN p.sex = 1 THEN k.id END) AS laki')
-		  ->select('COUNT(CASE WHEN p.sex = 2 THEN k.id END) AS perempuan')
+			->select('COUNT(CASE WHEN p.sex = 1 THEN k.id END) AS laki')
+			->select('COUNT(CASE WHEN p.sex = 2 THEN k.id END) AS perempuan')
 			->from('kelompok k')
 			->join('tweb_penduduk p', 'k.id_ketua = p.id', 'left')
 			->join('tweb_wil_clusterdesa a', 'p.id_cluster = a.id')
+			->where('k.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 		return $data;
 	}
@@ -331,16 +343,15 @@ class Bantuan_kelompok extends Statistik_penduduk_model {
 		// Ambil data sasaran kelompok
 		$data = $this->db
 			->select('COUNT(pp.id) AS jumlah')
-		  ->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
-		  ->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
+			->select('COUNT(CASE WHEN p.sex = 1 THEN pp.id END) AS laki')
+			->select('COUNT(CASE WHEN p.sex = 2 THEN pp.id END) AS perempuan')
 			->from('program_peserta pp')
 			->join('kelompok k', 'k.id = pp.peserta', 'left')
 			->join('tweb_penduduk p', 'k.id_ketua = p.id', 'left')
 			->join('tweb_wil_clusterdesa a', 'p.id_cluster = a.id')
+			->where('pp.desa_id', $this->config->item('desa_id'))
 			->where('pp.program_id', $this->program_id)
 			->get()->row_array();
 		return $data;
 	}
 }
-
-?>
