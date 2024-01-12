@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
  *  File ini bagian dari:
@@ -46,6 +46,7 @@ class Feed_model extends CI_Model
 			->from('artikel a')
 			->join('user u', 'a.id_user = u.id', 'left')
 			->join('kategori k', 'a.id_kategori = k.id', 'left')
+			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('a.enabled', static::ENABLE)
 			->where('tgl_upload < NOW()') // jangan tampilkan yg belum di-publish
 			->where_not_in('a.id_kategori', [static::STATIS, static::AGENDA])
