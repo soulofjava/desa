@@ -1,7 +1,7 @@
 <?php
-$servername = "localhost:8889";
+$servername = "localhost";
 $username = "root";
-$password = "root";
+$password = "";
 $dbname = "opensid";
 
 $conn = mysqli_connect($servername, $username, $password, $dbname);

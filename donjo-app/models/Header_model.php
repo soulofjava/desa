@@ -1,4 +1,5 @@
 <?php
+
 /**
  * File ini:
  *
@@ -42,7 +43,8 @@
  * @link 	https://github.com/OpenSID/OpenSID
  */
 
-class Header_model extends CI_Model {
+class Header_model extends CI_Model
+{
 
 	public function __construct()
 	{
@@ -54,7 +56,7 @@ class Header_model extends CI_Model {
 	// Data penduduk yang digunakan untuk ditampilkan di Widget halaman dashbord (Home SID)
 	public function penduduk_total()
 	{
-		$sql = "SELECT COUNT(id) AS jumlah FROM tweb_penduduk WHERE status_dasar = 1";
+		$sql = "SELECT COUNT(id) AS jumlah FROM tweb_penduduk WHERE status_dasar = 1 AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 		return $data;
@@ -67,6 +69,7 @@ class Header_model extends CI_Model {
 			->join('tweb_penduduk t', 'u.nik_kepala = t.id', 'left')
 			->where('t.status_dasar', '1')
 			->where('t.kk_level', '1')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->get()->result_array();
 		return $data;
 	}
@@ -74,10 +77,10 @@ class Header_model extends CI_Model {
 	public function bantuan_total()
 	{
 		$jml_program = $this->db->select('COUNT(id) as jml')
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('program')
 			->row()->jml;
-		if (empty($jml_program))
-		{
+		if (empty($jml_program)) {
 			$data['jumlah'] = 0;
 			$data['nama'] = 'Bantuan';
 			$data['link_detail'] = 'program_bantuan';
@@ -91,15 +94,16 @@ class Header_model extends CI_Model {
 			->from('program p')
 			->join('program_peserta pp', 'p.id = pp.program_id', 'left')
 			->where('p.id', $this->setting->dashboard_program_bantuan)
+			->where('p.desa_id', $this->config->item('desa_id'))
 			->get()
 			->row_array();
-		$data['link_detail'] = 'statistik/clear/50'.$this->setting->dashboard_program_bantuan;
+		$data['link_detail'] = 'statistik/clear/50' . $this->setting->dashboard_program_bantuan;
 		return $data;
 	}
 
 	public function kelompok_total()
 	{
-		$sql = "SELECT COUNT(id) AS jumlah FROM kelompok";
+		$sql = "SELECT COUNT(id) AS jumlah FROM kelompok WHERE desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 		return $data;
@@ -107,7 +111,7 @@ class Header_model extends CI_Model {
 
 	public function rtm_total()
 	{
-		$sql = "SELECT COUNT(id) AS jumlah FROM tweb_penduduk WHERE rtm_level = 1";
+		$sql = "SELECT COUNT(id) AS jumlah FROM tweb_penduduk WHERE rtm_level = 1 AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 		return $data;
@@ -115,7 +119,7 @@ class Header_model extends CI_Model {
 
 	public function dusun_total()
 	{
-		$sql = "SELECT COUNT(id) AS jumlah FROM tweb_wil_clusterdesa WHERE rt = '0' AND rw = '0' ";
+		$sql = "SELECT COUNT(id) AS jumlah FROM tweb_wil_clusterdesa WHERE rt = '0' AND rw = '0' AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 		return $data;
@@ -124,21 +128,19 @@ class Header_model extends CI_Model {
 	// ---
 	public function get_data()
 	{
-	/*
+		/*
 	 * global variabel
 	 * */
-		$outp["sasaran"] = array("1"=>"Penduduk", "2"=>"Keluarga / KK", "3"=>"Rumah Tangga", "4"=>"Kelompok/Organisasi Kemasyarakatan");
+		$outp["sasaran"] = array("1" => "Penduduk", "2" => "Keluarga / KK", "3" => "Rumah Tangga", "4" => "Kelompok/Organisasi Kemasyarakatan");
 
 		/*
 		 * Pembenahan per 13 Juli 15, sebelumnya ada notifikasi Error, saat $_SESSOIN['user'] nya kosong!
 		 * */
 		$id = @$_SESSION['user'];
-		$sql = "SELECT nama,foto FROM user WHERE id = ?";
+		$sql = "SELECT nama,foto FROM user WHERE id = ? AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql, $id);
-		if ($query)
-		{
-			if ($query->num_rows() > 0)
-			{
+		if ($query) {
+			if ($query->num_rows() > 0) {
 				$data  = $query->row_array();
 				$outp['nama'] = $data['nama'];
 				$outp['foto'] = $data['foto'];
@@ -147,18 +149,16 @@ class Header_model extends CI_Model {
 
 		$outp['desa'] = $this->config_model->get_data();
 
-		$sql = "SELECT COUNT(id) AS jml FROM komentar WHERE id_artikel = 775 AND status = 2;";
+		$sql = "SELECT COUNT(id) AS jml FROM komentar WHERE id_artikel = 775 AND status = 2 AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		$lap = $query->row_array();
 		$outp['lapor'] = $lap['jml'];
 
-		$outp['modul'] = $this->cache->pakai_cache(function ()
-		{
+		$outp['modul'] = $this->cache->pakai_cache(function () {
 			$this->load->model('modul_model');
 			return $this->modul_model->list_aktif();
 		}, "{$this->session->user}_cache_modul", 604800);
 
 		return $outp;
 	}
-
 }
