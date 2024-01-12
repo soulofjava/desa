@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -45,7 +45,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @link https://github.com/OpenSID/OpenSID
  */
 
-class Kelompok_master_model extends MY_Model {
+class Kelompok_master_model extends MY_Model
+{
 
 	public function __construct()
 	{
@@ -60,10 +61,9 @@ class Kelompok_master_model extends MY_Model {
 	private function search_sql()
 	{
 		$value = $this->session->cari;
-		if (isset($value))
-		{
+		if (isset($value)) {
 			$kw = $this->db->escape_like_str($value);
-			$kw = '%' .$kw. '%';
+			$kw = '%' . $kw . '%';
 			$search_sql = " AND (u.kelompok LIKE '$kw' OR u.kelompok LIKE '$kw')";
 			return $search_sql;
 		}
@@ -88,7 +88,7 @@ class Kelompok_master_model extends MY_Model {
 
 	private function list_data_sql()
 	{
-		$sql = "FROM kelompok_master u WHERE 1 ";
+		$sql = "FROM kelompok_master u WHERE 1 AND desa_id = " . $this->config->item('desa_id') . "";
 		$sql .= $this->search_sql();
 		return $sql;
 	}
@@ -96,11 +96,15 @@ class Kelompok_master_model extends MY_Model {
 	// $limit = 0 mengambil semua
 	public function list_data($o = 0, $offset = 0, $limit = 0)
 	{
-		switch ($o)
-		{
-			case 1: $order_sql = ' ORDER BY u.kelompok'; break;
-			case 2: $order_sql = ' ORDER BY u.kelompok DESC'; break;
-			default:$order_sql = ' ORDER BY u.kelompok';
+		switch ($o) {
+			case 1:
+				$order_sql = ' ORDER BY u.kelompok';
+				break;
+			case 2:
+				$order_sql = ' ORDER BY u.kelompok DESC';
+				break;
+			default:
+				$order_sql = ' ORDER BY u.kelompok';
 		}
 
 		$paging_sql = $limit > 0 ? ' LIMIT ' . $offset . ',' . $limit : '';
@@ -119,7 +123,7 @@ class Kelompok_master_model extends MY_Model {
 	public function insert()
 	{
 		$data = $this->validasi($this->input->post());
-		$outp = $this->db->insert('kelompok_master', $data);
+		$outp = $this->db->insert('kelompok_master', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		status_sukses($outp); //Tampilkan Pesan
 	}
@@ -142,7 +146,7 @@ class Kelompok_master_model extends MY_Model {
 
 	public function delete($id = '', $semua = FALSE)
 	{
-		if ( ! $semua) $this->session->success = 1;
+		if (!$semua) $this->session->success = 1;
 
 		$outp = $this->db->where('id', $id)->delete('kelompok_master');
 
@@ -154,25 +158,23 @@ class Kelompok_master_model extends MY_Model {
 		$this->session->success = 1;
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
-			$this->delete($id, $semua=true);
+		foreach ($id_cb as $id) {
+			$this->delete($id, $semua = true);
 		}
 	}
 
 	public function get_kelompok_master($id = 0)
 	{
-		$sql = "SELECT * FROM kelompok_master WHERE id = ?";
-		$query = $this->db->query($sql,$id);
+		$sql = "SELECT * FROM kelompok_master WHERE id = ? AND desa_id = " . $this->config->item('desa_id') . "";
+		$query = $this->db->query($sql, $id);
 		$data = $query->row_array();
 		return $data;
 	}
 
 	public function list_subjek()
 	{
-		$sql = "SELECT * FROM kelompok_ref_subjek";
+		$sql = "SELECT * FROM kelompok_ref_subjek WHERE desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		return $query->result_array();
 	}
-
 }
