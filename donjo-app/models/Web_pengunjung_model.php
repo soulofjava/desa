@@ -83,7 +83,8 @@
 		$tgl = date('Y-m-d');
 		$bln = date('m');
 		$thn = date('Y');
-		
+
+		$this->db->where('desa_id',  $this->config->item('desa_id'));
 		switch ($type)
 		{
 			case 1: 
@@ -133,4 +134,3 @@
 		return $data;
 	}	
 }
-?>
