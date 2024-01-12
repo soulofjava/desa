@@ -15,9 +15,10 @@ class Inventaris_jalan_model extends CI_Model
 	public function list_aset()
 	{
 		$this->db
-				->select('*')
-				->from('tweb_aset u')
-				->where('golongan',4);
+			->select('*')
+			->from('tweb_aset u')
+			->where('golongan', 4)
+			->where('u.desa_id', $this->config->item('desa_id'));
 		$data = $this->db->get()->result_array();
 		return $data;
 	}
@@ -26,14 +27,16 @@ class Inventaris_jalan_model extends CI_Model
 	{
 		$this->db->select('count(id) AS count');
 		$this->db->from($this->table);
+		$this->db->where($this->table . '.desa_id', $this->config->item('desa_id'));
 		$data = $this->db->get()->row();
 		return $data;
 	}
 
 	function list_inventaris_kd_register()
 	{
-		$this->db->select($this->table.'.register');
+		$this->db->select($this->table . '.register');
 		$this->db->from($this->table);
+		$this->db->where($this->table . '.desa_id', $this->config->item('desa_id'));
 		$data = $this->db->get()->result();
 		return $data;
 	}
@@ -43,7 +46,8 @@ class Inventaris_jalan_model extends CI_Model
 	{
 		$this->db->select('*');
 		$this->db->from($this->table);
-		$this->db->where($this->table.'.visible', 1);
+		$this->db->where($this->table . '.visible', 1);
+		$this->db->where($this->table . '.desa_id', $this->config->item('desa_id'));
 		$data = $this->db->get()->result();
 		return $data;
 	}
@@ -51,8 +55,9 @@ class Inventaris_jalan_model extends CI_Model
 	public function sum_inventaris()
 	{
 		$this->db->select_sum('harga');
-		$this->db->where($this->table.'.visible', 1);
-		$this->db->where($this->table.'.status', 0);
+		$this->db->where($this->table . '.visible', 1);
+		$this->db->where($this->table . '.status', 0);
+		$this->db->where($this->table . '.desa_id', $this->config->item('desa_id'));
 		$result = $this->db->get($this->table)->row();
 		return $result->harga;
 	}
@@ -60,10 +65,10 @@ class Inventaris_jalan_model extends CI_Model
 	public function sum_print($tahun)
 	{
 		$this->db->select_sum('harga');
-		$this->db->where($this->table.'.visible', 1);
-		$this->db->where($this->table.'.status', 0);
-		if ($tahun != 1)
-		{
+		$this->db->where($this->table . '.visible', 1);
+		$this->db->where($this->table . '.status', 0);
+		$this->db->where($this->table . '.desa_id', $this->config->item('desa_id'));
+		if ($tahun != 1) {
 			$this->db->where('year(tanggal_dokument)', $tahun);
 		}
 		$result = $this->db->get($this->table)->row();
@@ -74,8 +79,8 @@ class Inventaris_jalan_model extends CI_Model
 	{
 		$this->db->select('mutasi_inventaris_jalan.id as id,mutasi_inventaris_jalan.*,  inventaris_jalan.nama_barang, inventaris_jalan.kode_barang, inventaris_jalan.tanggal_dokument, inventaris_jalan.register');
 		$this->db->from($this->table_mutasi);
-		$this->db->where($this->table_mutasi.'.visible', 1);
-		$this->db->join($this->table, $this->table.'.id = '.$this->table_mutasi.'.id_inventaris_jalan', 'left');
+		$this->db->where($this->table_mutasi . '.visible', 1);
+		$this->db->join($this->table, $this->table . '.id = ' . $this->table_mutasi . '.id_inventaris_jalan', 'left');
 		$data = $this->db->get()->result();
 		return $data;
 	}
@@ -101,7 +106,7 @@ class Inventaris_jalan_model extends CI_Model
 	{
 		$this->db->select('*');
 		$this->db->from($this->table);
-        $this->db->where($this->table.'.id', $id);
+		$this->db->where($this->table . '.id', $id);
 		$data = $this->db->get()->row();
 		return $data;
 	}
@@ -110,8 +115,8 @@ class Inventaris_jalan_model extends CI_Model
 	{
 		$this->db->select('mutasi_inventaris_jalan.id as id,mutasi_inventaris_jalan.*,  inventaris_jalan.nama_barang, inventaris_jalan.kode_barang, inventaris_jalan.tanggal_dokument, inventaris_jalan.register');
 		$this->db->from($this->table_mutasi);
-		$this->db->where($this->table_mutasi.'.id', $id);
-		$this->db->join($this->table, $this->table.'.id = '.$this->table_mutasi.'.id_inventaris_jalan', 'left');
+		$this->db->where($this->table_mutasi . '.id', $id);
+		$this->db->join($this->table, $this->table . '.id = ' . $this->table_mutasi . '.id_inventaris_jalan', 'left');
 		$data = $this->db->get()->row();
 		return $data;
 	}
@@ -120,8 +125,8 @@ class Inventaris_jalan_model extends CI_Model
 	{
 		$this->db->select('mutasi_inventaris_jalan.id as id,mutasi_inventaris_jalan.*,  inventaris_jalan.nama_barang, inventaris_jalan.kode_barang, inventaris_jalan.tanggal_dokument, inventaris_jalan.register');
 		$this->db->from($this->table_mutasi);
-		$this->db->where($this->table_mutasi.'.id', $id);
-		$this->db->join($this->table, $this->table.'.id = '.$this->table_mutasi.'.id_inventaris_jalan', 'left');
+		$this->db->where($this->table_mutasi . '.id', $id);
+		$this->db->join($this->table, $this->table . '.id = ' . $this->table_mutasi . '.id_inventaris_jalan', 'left');
 		$data = $this->db->get()->row();
 		return $data;
 	}
@@ -156,13 +161,12 @@ class Inventaris_jalan_model extends CI_Model
 	{
 		$this->db->select('*');
 		$this->db->from($this->table);
-		$this->db->where($this->table.'.status',0);
-		$this->db->where($this->table.'.visible',1);
-		if ($tahun != 1)
-		{
-			$this->db->where('year(tanggal_dokument)',$tahun);
+		$this->db->where($this->table . '.status', 0);
+		$this->db->where($this->table . '.visible', 1);
+		if ($tahun != 1) {
+			$this->db->where('year(tanggal_dokument)', $tahun);
 		}
-		$this->db->order_by($this->table.'.tanggal_dokument', "asc");
+		$this->db->order_by($this->table . '.tanggal_dokument', "asc");
 		$data = $this->db->get()->result();
 		return $data;
 	}
@@ -172,9 +176,8 @@ class Inventaris_jalan_model extends CI_Model
 		$this->db->select('*');
 		$this->db->from($this->table_pamong);
 		// $this->db->where($this->table.'.tanggal_dokument',$tahun);
-		$this->db->where($this->table_pamong.'.pamong_id', $pamong);
+		$this->db->where($this->table_pamong . '.pamong_id', $pamong);
 		$data = $this->db->get()->row();
 		return $data;
 	}
-
 }
