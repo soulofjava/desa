@@ -1,4 +1,5 @@
-<?php class Log_ekspor_model extends CI_Model {
+<?php class Log_ekspor_model extends CI_Model
+{
 
 	public function __construct()
 	{
@@ -7,10 +8,10 @@
 
 	public function tulis_log($data)
 	{
-		$this->db->insert('log_ekspor', $data);
+		$this->db->insert('log_ekspor', $data + ['desa_id' => $this->config->item('desa_id')]);
 	}
 
-	public function log_terakhir($kode_ekspor, $semua=true)
+	public function log_terakhir($kode_ekspor, $semua = true)
 	{
 		return $this->db->where('kode_ekspor', $kode_ekspor)
 			->where('semua', $semua)
