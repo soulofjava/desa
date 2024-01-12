@@ -270,7 +270,7 @@ class Cdesa_model extends CI_Model
 		if ($id_mutasi)
 			$outp = $this->db->where('id', $id_mutasi)->update('mutasi_cdesa', $data);
 		else
-			$outp = $this->db->insert('mutasi_cdesa', $data + ['desa_id' => $this->config->item('desa_id')]);
+			$outp = $this->db->insert('mutasi_cdesa', $data);
 		if ($outp) {
 			$_SESSION["success"] = 1;
 			$_SESSION["pesan"] = "Data Persil telah DISIMPAN";
@@ -375,7 +375,7 @@ class Cdesa_model extends CI_Model
 			$upd['kelas'] = $data->val($i, 7, $sheet);
 			$upd['no_sppt_pbb'] = $data->val($i, 8, $sheet);
 			$upd['persil_peruntukan_id'] = $data->val($i, 9, $sheet);
-			$outp = $this->db->insert('data_persil', $upd + ['desa_id' => $this->config->item('desa_id')]);
+			$outp = $this->db->insert('data_persil', $upd);
 		}
 
 		status_sukses($outp); //Tampilkan Pesan
@@ -460,8 +460,7 @@ class Cdesa_model extends CI_Model
 		$this->db->select('p.id, p.nik,p.nama,k.no_kk,w.rt,w.rw,w.dusun')
 			->from('tweb_penduduk p')
 			->join('tweb_keluarga k', 'k.id = p.id_kk', 'left')
-			->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left')
-			->where('p.desa_id', $this->config->item('desa_id'));
+			->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left');
 		if ($nik)
 			$this->db->where('p.nik', $id);
 		else
