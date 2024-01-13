@@ -12,9 +12,9 @@
 
 // Data Konfigurasi MySQL yang disesuaikan
 
-$db['default']['hostname'] = 'localhost';
+$db['default']['hostname'] = 'localhost:8889';
 $db['default']['username'] = 'root';
-$db['default']['password'] = '';
+$db['default']['password'] = 'root';
 $db['default']['database'] = 'opensid';
 
 /*
