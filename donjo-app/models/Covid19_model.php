@@ -17,7 +17,7 @@ define("STATUS_COVID", serialize(array(
 
 $h_plus_array = array();
 $h_plus_array["-- Semua Data --"] = "99";
-for ($i=0; $i<=31; $i++, $h_plus_array["H+$i"] = "$i");
+for ($i = 0; $i <= 31; $i++, $h_plus_array["H+$i"] = "$i");
 define("H_PLUS", serialize($h_plus_array));
 
 
@@ -57,31 +57,30 @@ class Covid19_model extends CI_Model
 		$this->db->select('p.id');
 		$this->db->from('penduduk_hidup p');
 		$this->db->join('covid19_pemudik t', 'p.id = t.id_terdata', 'right');
+		$this->db->where('p.desa_id', $this->config->item('desa_id'));
 		$penduduk_not_in_pemudik = $this->db->get()->result_array();
 
 		$not_in_pemudik = "";
-		foreach ($penduduk_not_in_pemudik as $row)
-		{
-			$not_in_pemudik .= ",".$row["id"];
+		foreach ($penduduk_not_in_pemudik as $row) {
+			$not_in_pemudik .= "," . $row["id"];
 		}
 		$not_in_pemudik = ltrim($not_in_pemudik, ",");
 
 		$this->db->select('p.id as id, p.nik as nik, p.nama, w.rt, w.rw, w.dusun');
 		$this->db->from('penduduk_hidup p');
 		$this->db->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left');
+		$this->db->where('p.desa_id', $this->config->item('desa_id'));
 
-		if (!empty($not_in_pemudik))
-		{
+		if (!empty($not_in_pemudik)) {
 			$this->db->where("p.id NOT IN ($not_in_pemudik)");
 		}
 
 		$data = $this->db->get()->result_array();
-		foreach ($data as $item)
-		{
+		foreach ($data as $item) {
 			$penduduk = array(
 				'id' => $item['id'],
-				'nama' => strtoupper($item['nama']) ." [".$item['nik']."]",
-				'info' => "RT/RW ". $item['rt']."/".$item['rw']." - ".strtoupper($item['dusun'])
+				'nama' => strtoupper($item['nama']) . " [" . $item['nik'] . "]",
+				'info' => "RT/RW " . $item['rt'] . "/" . $item['rw'] . " - " . strtoupper($item['dusun'])
 			);
 			$retval[] = $penduduk;
 		}
@@ -106,13 +105,14 @@ class Covid19_model extends CI_Model
 		$this->db->join('tweb_keluarga k', 'u.id_kk = k.id', 'left');
 		$this->db->join('tweb_penduduk_warganegara f', 'u.warganegara_id = f.id', 'left');
 
+		$this->db->where('u.desa_id', $this->config->item('desa_id'));
 		$this->db->where('u.id', $id);
 
 		$query = $this->db->get();
 		$data  = $query->row_array();
 
 		$this->load->model('surat_model');
-		$data['alamat_wilayah']= $this->surat_model->get_alamat_wilayah($data);
+		$data['alamat_wilayah'] = $this->surat_model->get_alamat_wilayah($data);
 
 		return $data;
 	}
@@ -127,11 +127,12 @@ class Covid19_model extends CI_Model
 		$this->db->join('tweb_penduduk o', 's.id_terdata = o.id', 'left');
 		$this->db->join('tweb_keluarga k', 'k.id = o.id_kk', 'left');
 		$this->db->join('tweb_wil_clusterdesa w', 'w.id = o.id_cluster', 'left');
+		$this->db->where('s.desa_id', $this->config->item('desa_id'));
 
 		if (isset($id))
 			$this->db->where('s.id', $id);
 
-		if ($is_pantau_covid_page)
+		if ($is_wajib_pantau)
 			$this->db->where('s.is_wajib_pantau', '1');
 
 		if (isset($limit))
@@ -157,8 +158,7 @@ class Covid19_model extends CI_Model
 		$retval = array();
 
 		// paging
-		if ($this->session->has_userdata('per_page') and $this->session->userdata('per_page') > 0)
-		{
+		if ($this->session->has_userdata('per_page') and $this->session->userdata('per_page') > 0) {
 
 			$this->load->library('paging');
 
@@ -173,18 +173,15 @@ class Covid19_model extends CI_Model
 
 		// get list
 		$limit = null;
-		if (isset($retval["paging"]))
-		{
+		if (isset($retval["paging"])) {
 			$limit["per_page"] = $retval["paging"]->per_page;
 			$limit["offset"] = $retval["paging"]->offset;
 		}
 
 		$query = $this->get_pemudik(NULL, NULL, NULL, $limit);
-		if ($query->num_rows() > 0)
-		{
+		if ($query->num_rows() > 0) {
 			$data = $query->result_array();
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				$data[$i]['id'] = $data[$i]['id'];
 				$data[$i]['terdata_nama'] = $data[$i]['terdata_id'];
 				$data[$i]['terdata_info'] = $data[$i]['nama'];
@@ -192,7 +189,7 @@ class Covid19_model extends CI_Model
 				$data[$i]['tempat_lahir'] = strtoupper($data[$i]['tempatlahir']);
 				$data[$i]['tanggal_lahir'] = tgl_indo($data[$i]['tanggallahir']);
 				$data[$i]['sex'] = ($data[$i]['sex'] == 1) ? "LAKI-LAKI" : "PEREMPUAN";
-				$data[$i]['info'] = $data[$i]['alamat'] . " "  .  "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ". "Dusun " . strtoupper($data[$i]['dusun']);
+				$data[$i]['info'] = $data[$i]['alamat'] . " "  .  "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . "Dusun " . strtoupper($data[$i]['dusun']);
 			}
 			$retval['pemudik_list'] = $data;
 		}
@@ -209,7 +206,7 @@ class Covid19_model extends CI_Model
 		$data = $this->sterilkan($post);
 		$data['id_terdata'] = $post['id_terdata'];
 
-		return $this->db->insert('covid19_pemudik', $data);
+		return $this->db->insert('covid19_pemudik', $data + ['desa_id' => $this->config->item('desa_id')]);
 	}
 
 	private function sterilkan($post)
@@ -234,7 +231,7 @@ class Covid19_model extends CI_Model
 	{
 		$data = $this->sterilkan($post);
 
-		$this->db->where('id',$id);
+		$this->db->where('id', $id);
 		$this->db->update('covid19_pemudik', $data);
 	}
 
@@ -248,7 +245,7 @@ class Covid19_model extends CI_Model
 
 
 	// TABEL PEMANTAUAN
-	private function get_pantau_pemudik($filter_tgl=null, $filter_nik=null, $limit=NULL)
+	private function get_pantau_pemudik($filter_tgl = null, $filter_nik = null, $limit = NULL)
 	{
 		$this->db->select('p.*, o.nik, o.nama, o.sex, s.tanggal_datang');
 		$this->db->select('DATEDIFF(p.tanggal_jam, s.tanggal_datang) AS date_diff');
@@ -257,17 +254,16 @@ class Covid19_model extends CI_Model
 		$this->db->from('covid19_pantau p');
 		$this->db->join('covid19_pemudik s', 's.id = p.id_pemudik', 'left');
 		$this->db->join('tweb_penduduk o', 's.id_terdata = o.id', 'left');
+		$this->db->where('p.desa_id', $this->config->item('desa_id'));
 		$this->db->order_by('o.nik', 'ASC');
 		$this->db->order_by('p.tanggal_jam', 'DESC');
 
-		if (isset($filter_tgl))
-		{
+		if (isset($filter_tgl)) {
 			if ($filter_tgl != '0')
 				$this->db->where('DATE(p.tanggal_jam)', $filter_tgl);
 		}
 
-		if (isset($filter_nik))
-		{
+		if (isset($filter_nik)) {
 			if ($filter_nik != '0')
 				$this->db->where('p.id_pemudik', $filter_nik);
 		}
@@ -278,13 +274,12 @@ class Covid19_model extends CI_Model
 		return  $this->db->get();
 	}
 
-	public function get_list_pantau_pemudik($page, $filter_tgl=null, $filter_nik=null)
+	public function get_list_pantau_pemudik($page, $filter_tgl = null, $filter_nik = null)
 	{
 		$retval = array();
 
 		// paging
-		if ($this->session->has_userdata('per_page') and $this->session->userdata('per_page') > 0)
-		{
+		if ($this->session->has_userdata('per_page') and $this->session->userdata('per_page') > 0) {
 			$this->load->library('paging');
 
 			$cfg['page'] = $page;
@@ -298,8 +293,7 @@ class Covid19_model extends CI_Model
 
 		// get list
 		$limit = null;
-		if (isset($retval["paging"]))
-		{
+		if (isset($retval["paging"])) {
 			$limit["per_page"] = $retval["paging"]->per_page;
 			$limit["offset"] = $retval["paging"]->offset;
 		}
@@ -313,6 +307,7 @@ class Covid19_model extends CI_Model
 	{
 		$this->db->select('DATE(p.tanggal_jam) as tanggal');
 		$this->db->from('covid19_pantau p');
+		$this->db->where('p.desa_id', $this->config->item('desa_id'));
 		$this->db->group_by("tanggal");
 		$this->db->order_by('tanggal', 'DESC');
 
@@ -325,6 +320,7 @@ class Covid19_model extends CI_Model
 		$this->db->from('covid19_pantau p');
 		$this->db->join('covid19_pemudik s', 's.id = p.id_pemudik', 'left');
 		$this->db->join('tweb_penduduk o', 's.id_terdata = o.id', 'left');
+		$this->db->where('p.desa_id', $this->config->item('desa_id'));
 		$this->db->group_by("p.id_pemudik");
 		$this->db->group_by("o.nik");
 		$this->db->group_by("o.nama");
@@ -338,13 +334,13 @@ class Covid19_model extends CI_Model
 			'id_pemudik' => $post['terdata'],
 			'tanggal_jam' => $post['tgl_jam'],
 			'suhu_tubuh' => $post['suhu'],
-			'batuk' => (isset($post['batuk']) ? '1':'0'),
-			'flu' => (isset($post['flu']) ? '1':'0'),
-			'sesak_nafas' => (isset($post['sesak']) ? '1':'0'),
+			'batuk' => (isset($post['batuk']) ? '1' : '0'),
+			'flu' => (isset($post['flu']) ? '1' : '0'),
+			'sesak_nafas' => (isset($post['sesak']) ? '1' : '0'),
 			'keluhan_lain' => $this->security->xss_clean($post['keluhan']),
 			'status_covid' => $this->security->xss_clean($post['status_covid']),
 		);
-		return $this->db->insert('covid19_pantau', $data);
+		return $this->db->insert('covid19_pantau', $data + ['desa_id' => $this->config->item('desa_id')]);
 	}
 
 	public function delete_pantau_pemudik_by_id($id)
@@ -355,4 +351,3 @@ class Covid19_model extends CI_Model
 	// TABEL PEMANTAUAN END
 
 }
-?>
