@@ -198,13 +198,13 @@ class Penduduk_model extends MY_Model
 		$kb = $this->session->filter_bulan;
 		switch (true) {
 			case ($kt && $kb):
-				$this->db->where("date_format(log.tgl_lapor, '%Y-%m') <= '$kt-$kb'")->where('desa_id', $this->config->item('desa_id'));
+				$this->db->where("date_format(log.tgl_lapor, '%Y-%m') <= '$kt-$kb'")->where('u.desa_id', $this->config->item('desa_id'));
 				break;
 			case ($kt):
-				$this->db->where("YEAR(log.tgl_lapor) <=", $kt)->where('desa_id', $this->config->item('desa_id'));
+				$this->db->where("YEAR(log.tgl_lapor) <=", $kt)->where('u.desa_id', $this->config->item('desa_id'));
 				break;
 			case ($kb):
-				$this->db->where("MONTH(log.tgl_lapor) <=", $kb)->where('desa_id', $this->config->item('desa_id'));
+				$this->db->where("MONTH(log.tgl_lapor) <=", $kb)->where('u.desa_id', $this->config->item('desa_id'));
 				break;
 			default:
 		}

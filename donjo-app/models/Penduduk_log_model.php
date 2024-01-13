@@ -154,49 +154,49 @@ class Penduduk_log_model extends MY_Model
 	private function sex_sql()
 	{
 		if ($kf = $this->session->sex) {
-			$this->db->where('u.sex', $kf)->where('desa_id', $this->config->item('desa_id'));
+			$this->db->where('u.sex', $kf)->where('u.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function agama_sql()
 	{
 		if ($kf = $this->session->agama) {
-			$this->db->where('u.agama_id', $kf)->where('desa_id', $this->config->item('desa_id'));
+			$this->db->where('u.agama_id', $kf)->where('u.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function dusun_sql()
 	{
 		if ($kf = $this->session->dusun) {
-			$this->db->where('a.dusun', $kf)->where('desa_id', $this->config->item('desa_id'));
+			$this->db->where('a.dusun', $kf)->where('a.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function rw_sql()
 	{
 		if ($kf = $this->session->rw) {
-			$this->db->where('a.rw', $kf)->where('desa_id', $this->config->item('desa_id'));
+			$this->db->where('a.rw', $kf)->where('a.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function rt_sql()
 	{
 		if ($kf = $this->session->rt) {
-			$this->db->where('a.rt', $kf)->where('desa_id', $this->config->item('desa_id'));
+			$this->db->where('a.rt', $kf)->where('a.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function kode_peristiwa()
 	{
 		if ($kf = $this->session->kode_peristiwa) {
-			$this->db->where_in('log.kode_peristiwa', $kf)->where('desa_id', $this->config->item('desa_id'));
+			$this->db->where_in('log.kode_peristiwa', $kf)->where('log.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function status_penduduk()
 	{
 		if ($kf = $this->session->status_penduduk) {
-			$this->db->where('u.status', $kf)->where('desa_id', $this->config->item('desa_id'));
+			$this->db->where('u.status', $kf)->where('u.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
@@ -205,14 +205,14 @@ class Penduduk_log_model extends MY_Model
 		$kt = $this->session->filter_tahun;
 		$kb = $this->session->filter_bulan;
 
-		if ($kt) $this->db->where("YEAR(log.tgl_lapor)", $kt)->where('desa_id', $this->config->item('desa_id'));
-		if ($kb) $this->db->where("MONTH(log.tgl_lapor)", $kb)->where('desa_id', $this->config->item('desa_id'));
+		if ($kt) $this->db->where("YEAR(log.tgl_lapor)", $kt)->where('log.desa_id', $this->config->item('desa_id'));
+		if ($kb) $this->db->where("MONTH(log.tgl_lapor)", $kb)->where('log.desa_id', $this->config->item('desa_id'));
 	}
 
 	private function tgl_lengkap()
 	{
 		if ($kf = $this->session->tgl_lengkap) {
-			$this->db->where("log.tgl_lapor >=", $kf)->where('desa_id', $this->config->item('desa_id'));
+			$this->db->where("log.tgl_lapor >=", $kf)->where('log.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
@@ -260,7 +260,7 @@ class Penduduk_log_model extends MY_Model
 			->from('log_penduduk log')
 			->join('tweb_penduduk u', 'u.id = log.id_pend', 'left')
 			->join('log_hapus_penduduk h', 'h.id_pend = log.id_pend', 'left')
-			->where('desa_id', $this->config->item('desa_id'))
+			->where('log.desa_id', $this->config->item('desa_id'))
 			->where('u.created_at IS NULL')
 			->where('h.deleted_at > log.created_at');
 
@@ -287,7 +287,7 @@ class Penduduk_log_model extends MY_Model
 			->join('tweb_penduduk_warganegara v', 'v.id = u.warganegara_id', 'left')
 			->join('ref_pindah rp', 'rp.id = log.ref_pindah', 'left')
 			->join('ref_peristiwa ra', 'ra.id = log.kode_peristiwa', 'left')
-			->where('desa_id', $this->config->item('desa_id'));
+			->where('log.desa_id', $this->config->item('desa_id'));
 
 		$this->kode_peristiwa();
 		$this->search_sql();
@@ -308,7 +308,7 @@ class Penduduk_log_model extends MY_Model
 			->select('u.id, u.nik, u.tempatlahir, u.tanggallahir, u.id_kk, u.nama, u.foto, a.dusun, a.rw, a.rt, d.alamat, log.id as id_log, log.no_kk AS no_kk, log.catatan as catatan, log.nama_kk as nama_kk, v.nama AS warganegara, u.created_at, log.meninggal_di, u.alamat_sebelumnya, log.alamat_tujuan,')
 			->select('(CASE when log.kode_peristiwa = 3 then rp.nama else ra.nama end) as nama_peristiwa')
 			->select("(SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(log.tgl_peristiwa)-TO_DAYS(u.tanggallahir)), '%Y')+0) AS umur_pada_peristiwa")
-			->select('x.nama AS sex, g.nama AS agama, log.tgl_lapor, log.tgl_peristiwa, log.kode_peristiwa, h.nik as nik_hapus')->where('desa_id', $this->config->item('desa_id'));
+			->select('x.nama AS sex, g.nama AS agama, log.tgl_lapor, log.tgl_peristiwa, log.kode_peristiwa, h.nik as nik_hapus')->where('u.desa_id', $this->config->item('desa_id'));
 
 		$this->list_data_sql();
 

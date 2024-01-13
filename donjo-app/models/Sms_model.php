@@ -96,7 +96,7 @@ class Sms_model extends MY_Model
 	{
 		$sql = " FROM inbox u
 			LEFT JOIN kontak k on u.SenderNumber = k.no_hp
-			LEFT JOIN tweb_penduduk p on k.id_pend = p.id WHERE 1 AND desa_id = " . $this->config->item('desa_id') . "";
+			LEFT JOIN tweb_penduduk p on k.id_pend = p.id WHERE 1 AND u.desa_id = " . $this->config->item('desa_id') . "";
 		$sql .= $this->search_sql();
 		$sql .= $this->filter_sql();
 		return $sql;
@@ -161,7 +161,7 @@ class Sms_model extends MY_Model
 
 	public function get_autoreply()
 	{
-		$sql = "SELECT * FROM setting_sms LIMIT 1 AND desa_id = " . $this->config->item('desa_id') . "";
+		$sql = "SELECT * FROM setting_sms WHERE desa_id = " . $this->config->item('desa_id') . " LIMIT 1";
 		$query = $this->db->query($sql);
 		$data = $query->row_array();
 		return $data;
@@ -188,7 +188,7 @@ class Sms_model extends MY_Model
 		$sql = " FROM sentitems u
 			LEFT JOIN kontak k on u.DestinationNumber = k.no_hp
 			LEFT JOIN tweb_penduduk p on k.id_pend = p.id
-			WHERE 1 AND desa_id = " . $this->config->item('desa_id') . "";
+			WHERE 1 AND u.desa_id = " . $this->config->item('desa_id') . "";
 		$sql .= $this->filter_sql();
 		return $sql;
 	}
@@ -260,7 +260,7 @@ class Sms_model extends MY_Model
 		$sql = " FROM outbox u
 			LEFT JOIN kontak k on u.DestinationNumber = k.no_hp
 			LEFT JOIN tweb_penduduk p on k.id_pend = p.id
-			WHERE 1 AND desa_id = " . $this->config->item('desa_id') . "";
+			WHERE 1 AND u.desa_id = " . $this->config->item('desa_id') . "";
 		$sql .= $this->filter_sql();
 		return $sql;
 	}
@@ -602,7 +602,7 @@ class Sms_model extends MY_Model
 	public function paging_kontak($p = 1, $o = 0)
 	{
 		$sql = "SELECT COUNT(*) as jml " . $this->list_data_kontak_sql();
-		$query = $this->db->query($sql);
+		$query = $this->db->where('desa_id', $this->config->item('desa_id'))->query($sql);
 		$row = $query->row_array();
 		$jml_data = $row['jml'];
 
@@ -617,7 +617,7 @@ class Sms_model extends MY_Model
 
 	private function list_data_kontak_sql()
 	{
-		$sql = " FROM daftar_kontak WHERE 1 AND desa_id = " . $this->config->item('desa_id') . " ";
+		$sql = " FROM daftar_kontak WHERE 1";
 		$sql .= $this->search_kontak_sql();
 		return $sql;
 	}
@@ -693,7 +693,7 @@ class Sms_model extends MY_Model
 	public function paging_grup($p = 1, $o = 0)
 	{
 		$sql = "SELECT COUNT(*) as jml " . $this->list_data_grup_sql();
-		$query = $this->db->query($sql);
+		$query = $this->db->where('desa_id', $this->config->item('desa_id'))->query($sql);
 		$row = $query->row_array();
 		$jml_data = $row['jml'];
 
@@ -708,7 +708,7 @@ class Sms_model extends MY_Model
 
 	private function list_data_grup_sql()
 	{
-		$sql = " FROM daftar_grup TB WHERE 1 AND desa_id = " . $this->config->item('desa_id') . " ";
+		$sql = " FROM daftar_grup TB WHERE 1";
 		$sql .= $this->search_grup_sql();
 		return $sql;
 	}

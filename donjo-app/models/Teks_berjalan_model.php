@@ -27,7 +27,6 @@
 		$this->sql();
 
 		if ($web === TRUE) $this->db->where('status', 1);
-		$this->db->where('desa_id', $this->config->item('desa_id'));
 		$data = $this->db->get()->result_array();
 
 		for ($i = 0; $i < count($data); $i++) {
