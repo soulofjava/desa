@@ -1,4 +1,5 @@
-<?php class Track_model extends CI_Model {
+<?php class Track_model extends CI_Model
+{
 
   public function __construct()
   {
@@ -12,13 +13,10 @@
   {
     if ($this->setting->enable_track == FALSE) return;
     // Track web dan admin masing2 maksimum sekali sehari
-    if (strpos(current_url(), 'first') !== FALSE)
-    {
-      if(isset($_SESSION['track_web']) AND $_SESSION['track_web'] == date("Y m d")) return;
-    }
-    else
-    {
-      if(isset($_SESSION['track_admin']) AND $_SESSION['track_admin'] == date("Y m d")) return;
+    if (strpos(current_url(), 'first') !== FALSE) {
+      if (isset($_SESSION['track_web']) and $_SESSION['track_web'] == date("Y m d")) return;
+    } else {
+      if (isset($_SESSION['track_admin']) and $_SESSION['track_admin'] == date("Y m d")) return;
     }
 
     $_SESSION['balik_ke'] = $dari;
@@ -27,62 +25,58 @@
 
   public function kirim_data()
   {
-    if (defined('ENVIRONMENT'))
-    {
-      switch (ENVIRONMENT)
-      {
+    if (defined('ENVIRONMENT')) {
+      switch (ENVIRONMENT) {
         case 'development':
           // Di development, panggil tracker hanya jika terinstal
           if (empty($this->setting->tracker)) return;
           $tracker = $this->setting->tracker;
-        break;
+          break;
 
         case 'testing':
         case 'production':
           $tracker = $this->setting->tracker;
-        break;
+          break;
 
         default:
           exit('The application environment is not set correctly.');
       }
     }
     $this->db->where('id', 1);
+    $this->db->where('desa_id', $this->config->item('desa_id'));
     $query = $this->db->get('config');
     $config = $query->row_array();
     $desa = array(
-     "nama_desa" => $config['nama_desa'],
-     "kode_desa" => $config['kode_desa'],
-     "kode_pos" => $config['kode_pos'],
-     "nama_kecamatan" => $config['nama_kecamatan'],
-     "kode_kecamatan" => $config['kode_kecamatan'],
-     "nama_kabupaten" => $config['nama_kabupaten'],
-     "kode_kabupaten" => $config['kode_kabupaten'],
-     "nama_provinsi" => $config['nama_propinsi'],
-     "kode_provinsi" => $config['kode_propinsi'],
-     "lat" => $config['lat'],
-     "lng" => $config['lng'],
-     "alamat_kantor" => $config['alamat_kantor'],
-     "email_desa" => $config['email_desa'],
-     "telepon" => $config['telepon'],
-     "url" => current_url(),
-     "ip_address" => $_SERVER['SERVER_ADDR'],
-     "external_ip" => get_external_ip(),
-     "version" => AmbilVersi(),
-     "jml_penduduk" => $this->penduduk_model->jml_penduduk(),
-     "jml_artikel" => $this->web_artikel_model->jml_artikel(),
-     "jml_surat_keluar" => $this->keluar_model->jml_surat_keluar()
+      "nama_desa" => $config['nama_desa'],
+      "kode_desa" => $config['kode_desa'],
+      "kode_pos" => $config['kode_pos'],
+      "nama_kecamatan" => $config['nama_kecamatan'],
+      "kode_kecamatan" => $config['kode_kecamatan'],
+      "nama_kabupaten" => $config['nama_kabupaten'],
+      "kode_kabupaten" => $config['kode_kabupaten'],
+      "nama_provinsi" => $config['nama_propinsi'],
+      "kode_provinsi" => $config['kode_propinsi'],
+      "lat" => $config['lat'],
+      "lng" => $config['lng'],
+      "alamat_kantor" => $config['alamat_kantor'],
+      "email_desa" => $config['email_desa'],
+      "telepon" => $config['telepon'],
+      "url" => current_url(),
+      "ip_address" => $_SERVER['SERVER_ADDR'],
+      "external_ip" => get_external_ip(),
+      "version" => AmbilVersi(),
+      "jml_penduduk" => $this->penduduk_model->jml_penduduk(),
+      "jml_artikel" => $this->web_artikel_model->jml_artikel(),
+      "jml_surat_keluar" => $this->keluar_model->jml_surat_keluar()
     );
 
     if ($this->abaikan($desa)) return;
 
-    $trackSID_output = httpPost($tracker."/index.php/api/track/desa?token=".$this->token_opensid(), $desa);
+    $trackSID_output = httpPost($tracker . "/index.php/api/track/desa?token=" . $this->token_opensid(), $desa);
     $this->cek_notifikasi_TrackSID($trackSID_output);
-    if (strpos(current_url(), 'first') !== FALSE)
-    {
+    if (strpos(current_url(), 'first') !== FALSE) {
       $_SESSION['track_web'] = date("Y m d");
-    }
-    else
-    {
+    } else {
       $_SESSION['track_admin'] = date("Y m d");
     }
   }
@@ -91,8 +85,7 @@
   // Buat token_opensid kalau belum ada, menggunakan hash file LISENSI
   private function token_opensid()
   {
-    if (empty($this->setting->token_opensid))
-    {
+    if (empty($this->setting->token_opensid)) {
       $lisensi = fopen('LICENSE', 'r');
       $token_opensid = sha1(file_get_contents($lisensi));
       // TODO: Ganti nama, karena ada masalah dengan loading setting_model dari proses migrasi
@@ -104,11 +97,9 @@
 
   private function cek_notifikasi_TrackSID($trackSID_output)
   {
-    if (!empty($trackSID_output))
-    {
+    if (!empty($trackSID_output)) {
       $array_output = json_decode($trackSID_output, true);
-      foreach ($array_output as $notif)
-      {
+      foreach ($array_output as $notif) {
         unset($notif['id']);
         $notif['tgl_berikutnya'] = date("Y-m-d H:i:s");
         $notif['updated_by'] = 0;
@@ -143,20 +134,16 @@
     $kec = trim($data['nama_kecamatan']);
     $kab = trim($data['nama_kabupaten']);
     $prov = trim($data['nama_provinsi']);
-    if ( strlen($desa)<3 OR strlen($kec)<4 OR strlen($kab)<4 OR strlen($prov)<4 )
-    {
+    if (strlen($desa) < 3 or strlen($kec) < 4 or strlen($kab) < 4 or strlen($prov) < 4) {
       $abaikan = true;
-    }
-    elseif (preg_match($regex, $desa) OR
-        preg_match($regex, $kec) OR
-        preg_match($regex, $kab) OR
-        preg_match($regex, $prov)
-       )
-    {
+    } elseif (
+      preg_match($regex, $desa) or
+      preg_match($regex, $kec) or
+      preg_match($regex, $kab) or
+      preg_match($regex, $prov)
+    ) {
       $abaikan = true;
     }
     return $abaikan;
   }
-
 }
-?>

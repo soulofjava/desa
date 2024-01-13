@@ -76,11 +76,12 @@ class Penduduk_penerima_bantuan extends Statistik_penduduk_model
 			->where('u.sasaran', '1')
 			->where('u.desa_id', $this->config->item('desa_id'))
 			->where('u.status', '1')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->order_by('u.nama')
 			->group_by('u.id');
-		if ($dusun = $this->session->userdata("dusun")) $this->db->where('a.dusun', $dusun);
-		if ($rw = $this->session->userdata("rw")) $this->db->where('a.rw', $rw);
-		if ($rt = $this->session->userdata("rt")) $this->db->where('a.rt', $rt);
+		if ($dusun = $this->session->userdata("dusun")) $this->db->where('a.dusun', $dusun)->where('a.desa_id', $this->config->item('desa_id'));
+		if ($rw = $this->session->userdata("rw")) $this->db->where('a.rw', $rw)->where('a.desa_id', $this->config->item('desa_id'));
+		if ($rt = $this->session->userdata("rt")) $this->db->where('a.rt', $rt)->where('a.desa_id', $this->config->item('desa_id'));
 		return true;
 	}
 
@@ -105,6 +106,7 @@ class Penduduk_penerima_bantuan extends Statistik_penduduk_model
 			->where('u.sasaran', '1')
 			->where('u.desa_id', $this->config->item('desa_id'))
 			->where('u.status', '1')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 		return $data;
 	}
@@ -135,6 +137,7 @@ class Keluarga_penerima_bantuan extends Statistik_penduduk_model
 			->where('u.sasaran', '2')
 			->where('u.desa_id', $this->config->item('desa_id'))
 			->where('u.status', '1')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->group_by('u.id');
 		return true;
 	}
@@ -160,6 +163,7 @@ class Keluarga_penerima_bantuan extends Statistik_penduduk_model
 			->where('u.sasaran', '2')
 			->where('u.desa_id', $this->config->item('desa_id'))
 			->where('u.status', '1')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 		return $data;
 	}
@@ -351,6 +355,7 @@ class Bantuan_kelompok extends Statistik_penduduk_model
 			->join('tweb_wil_clusterdesa a', 'p.id_cluster = a.id')
 			->where('pp.desa_id', $this->config->item('desa_id'))
 			->where('pp.program_id', $this->program_id)
+			->where('pp.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 		return $data;
 	}

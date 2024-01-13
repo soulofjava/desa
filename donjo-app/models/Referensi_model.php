@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -176,7 +176,8 @@ define("STATUS_PEMBANGUNAN", serialize([
 	4 => '100%'
 ]));
 
-class Referensi_model extends CI_Model {
+class Referensi_model extends CI_Model
+{
 
 	public function __construct()
 	{
@@ -187,20 +188,19 @@ class Referensi_model extends CI_Model {
 	{
 		$data = $this->list_data($tabel);
 		$list = [];
-		foreach ($data as $key => $value)
-		{
+		foreach ($data as $key => $value) {
 			$list[$value['id']] = $value['nama'];
 		}
 		return $list;
 	}
 
-	public function list_data($tabel, $kecuali='', $termasuk=null)
+	public function list_data($tabel, $kecuali = '', $termasuk = null)
 	{
 		if ($kecuali) $this->db->where("id NOT IN ($kecuali)");
 
 		if ($termasuk) $this->db->where("id IN ($termasuk)");
 
-		$data = $this->db->select('*')->order_by('id')->get($tabel)->result_array();
+		$data = $this->db->select('*')->where('desa_id', $this->config->item('desa_id'))->order_by('id')->get($tabel)->result_array();
 		return $data;
 	}
 
@@ -225,6 +225,7 @@ class Referensi_model extends CI_Model {
 	public function list_by_id($tabel, $id = 'id')
 	{
 		$data = $this->db->order_by($id)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get($tabel)
 			->result_array();
 		$data = array_combine(array_column($data, $id), $data);

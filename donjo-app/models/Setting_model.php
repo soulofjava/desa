@@ -1,4 +1,4 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') or exit('No direct script access allowed');
 
 define("EKSTENSI_WAJIB", serialize(array(
 	"curl",
@@ -15,7 +15,8 @@ define("EKSTENSI_WAJIB", serialize(array(
 define("VERSI_PHP_MINIMAL", '7.2.0');
 define("VERSI_MYSQL_MINIMAL", '5.6.5');
 
-class Setting_model extends CI_Model {
+class Setting_model extends CI_Model
+{
 
 
 	public function __construct()
@@ -24,25 +25,21 @@ class Setting_model extends CI_Model {
 		$pre = array();
 		$CI = &get_instance();
 
-		if ($this->setting or ! $this->db->table_exists('setting_aplikasi'))
-		{
+		if ($this->setting or !$this->db->table_exists('setting_aplikasi')) {
 			return;
 		}
 
-		if ($this->config->item("useDatabaseConfig"))
-		{
+		if ($this->config->item("useDatabaseConfig")) {
 			$pr = $this->db
 				->order_by('key')
+				->where('desa_id', $this->config->item('desa_id'))
 				->get("setting_aplikasi")
 				->result();
 
-			foreach ($pr as $p)
-			{
+			foreach ($pr as $p) {
 				$pre[addslashes($p->key)] = addslashes($p->value);
 			}
-		}
-		else
-		{
+		} else {
 			$pre = (object) $CI->config->config;
 		}
 		$CI->setting = (object) $pre;
@@ -54,30 +51,26 @@ class Setting_model extends CI_Model {
 	private function apply_setting()
 	{
 		//  https://stackoverflow.com/questions/16765158/date-it-is-not-safe-to-rely-on-the-systems-timezone-settings
-		date_default_timezone_set($this->setting->timezone);//ganti ke timezone lokal
+		date_default_timezone_set($this->setting->timezone); //ganti ke timezone lokal
 		// Ambil google api key dari desa/config/config.php kalau tidak ada di database
-		if (empty($this->setting->google_key))
-		{
+		if (empty($this->setting->google_key)) {
 			$this->setting->google_key = config_item('google_key');
 		}
 		// Ambil token tracksid dari desa/config/config.php kalau tidak ada di database
-		if (empty($this->setting->token_opensid))
-		{
+		if (empty($this->setting->token_opensid)) {
 			$this->setting->token_opensid = config_item('token_opensid');
 		}
 		// Server Pantau
-		$this->setting->tracker = (ENVIRONMENT == 'development' && ! empty(config_item('dev_tracker'))) ? config_item('dev_tracker') : "https://pantau.opensid.my.id";
-		
+		$this->setting->tracker = (ENVIRONMENT == 'development' && !empty(config_item('dev_tracker'))) ? config_item('dev_tracker') : "https://pantau.opensid.my.id";
+
 		// Server Layanan
-		$this->setting->layanan_opendesa_server = (ENVIRONMENT == 'development' || ! empty(config_item('layanan_opendesa_dev_server'))) ? config_item('layanan_opendesa_dev_server') : "https://layanan.opendesa.id/";
+		$this->setting->layanan_opendesa_server = (ENVIRONMENT == 'development' || !empty(config_item('layanan_opendesa_dev_server'))) ? config_item('layanan_opendesa_dev_server') : "https://layanan.opendesa.id/";
 		$this->setting->user_admin = config_item('user_admin');
 		// Kalau folder tema ubahan tidak ditemukan, ganti dengan tema default
 		$pos = strpos($this->setting->web_theme, 'desa/');
-		if ($pos !== false)
-		{
+		if ($pos !== false) {
 			$folder = FCPATH . '/desa/themes/' . substr($this->setting->web_theme, $pos + strlen('desa/'));
-			if (!file_exists($folder))
-			{
+			if (!file_exists($folder)) {
 				$this->setting->web_theme = "default";
 			}
 		}
@@ -88,11 +81,9 @@ class Setting_model extends CI_Model {
 
 	public function update_setting($data)
 	{
-		foreach ($data as $key => $value)
-		{
+		foreach ($data as $key => $value) {
 			// Update setting yang diubah
-			if ($this->setting->$key != $value)
-			{
+			if ($this->setting->$key != $value) {
 				if ($key == 'current_version') continue;
 				$value = strip_tags($value);
 				$this->update($key, $value);
@@ -120,12 +111,9 @@ class Setting_model extends CI_Model {
 
 		$this->upload->initialize($config);
 
-		if ($this->upload->do_upload($key))
-		{
+		if ($this->upload->do_upload($key)) {
 			$this->upload->data();
-		}
-		else
-		{
+		} else {
 			$this->session->error_msg = $this->upload->display_errors();
 			$this->session->success = -1;
 		}
@@ -133,17 +121,14 @@ class Setting_model extends CI_Model {
 
 	private function notifikasi_tracker()
 	{
-		if ($this->setting->enable_track == 0)
-		{
+		if ($this->setting->enable_track == 0) {
 			// Notifikasi tracker dimatikan
 			$notif = [
 				'updated_at' => date("Y-m-d H:i:s"),
 				'tgl_berikutnya' => date("Y-m-d H:i:s"),
 				'aktif' => 1
 			];
-		}
-		else
-		{
+		} else {
 			// Matikan notifikasi tracker yg sdh aktif
 			$notif = [
 				'updated_at' => date("Y-m-d H:i:s"),
@@ -173,7 +158,7 @@ class Setting_model extends CI_Model {
 	{
 		$_SESSION['success'] = 1;
 		$this->setting->sumber_gambar_slider = $this->input->post('pilihan_sumber');
-		$outp = $this->db->where('key','sumber_gambar_slider')->update('setting_aplikasi', array('value'=>$this->input->post('pilihan_sumber')));
+		$outp = $this->db->where('key', 'sumber_gambar_slider')->update('setting_aplikasi', array('value' => $this->input->post('pilihan_sumber')));
 		if (!$outp) $_SESSION['success'] = -1;
 	}
 
@@ -187,19 +172,17 @@ class Setting_model extends CI_Model {
 		$_SESSION['success'] = 1;
 		$mode = $this->input->post('offline_mode_saja');
 		$this->setting->offline_mode = ($mode === '0' or $mode) ? $mode : $this->input->post('offline_mode');
-		$out1 = $this->db->where('key','offline_mode')->update('setting_aplikasi', array('value'=>$this->setting->offline_mode));
+		$out1 = $this->db->where('key', 'offline_mode')->update('setting_aplikasi', array('value' => $this->setting->offline_mode));
 		$penggunaan_server = $this->input->post('server_mana') ?: $this->input->post('jenis_server');
 		$this->setting->penggunaan_server = $penggunaan_server;
-		$out2 = $this->db->where('key','penggunaan_server')->update('setting_aplikasi', array('value'=>$penggunaan_server));
+		$out2 = $this->db->where('key', 'penggunaan_server')->update('setting_aplikasi', array('value' => $penggunaan_server));
 		if (!$out1 or !$out2) $_SESSION['success'] = -1;
 	}
 
 	public function load_options()
 	{
-		foreach ($this->list_setting as $i => $set)
-		{
-			if (in_array($set->jenis, array('option', 'option-value', 'option-kode')))
-			{
+		foreach ($this->list_setting as $i => $set) {
+			if (in_array($set->jenis, array('option', 'option-value', 'option-kode'))) {
 				$this->list_setting[$i]->options = $this->get_options($set->id);
 			}
 		}
@@ -208,9 +191,10 @@ class Setting_model extends CI_Model {
 	private function get_options($id)
 	{
 		$rows = $this->db->select('id, kode, value')
-		                 ->where('id_setting', $id)
-		                 ->get('setting_aplikasi_options')
-		                 ->result();
+			->where('id_setting', $id)
+			->where('desa_id', $this->config->item('desa_id'))
+			->get('setting_aplikasi_options')
+			->result();
 		return $rows;
 	}
 
@@ -223,8 +207,7 @@ class Setting_model extends CI_Model {
 		usort($e, 'strcasecmp');
 		$ekstensi_wajib = array_flip($e);
 		$lengkap = true;
-		foreach ($ekstensi_wajib as $key => $value)
-		{
+		foreach ($ekstensi_wajib as $key => $value) {
 			$ekstensi_wajib[$key] = isset($ekstensi[$key]);
 			$lengkap = $lengkap && $ekstensi_wajib[$key];
 		}

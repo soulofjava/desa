@@ -4,7 +4,8 @@ use Esyede\Curly;
 
 require_once APPPATH . '/libraries/Curly.php';
 
-class Notif_model extends CI_Model {
+class Notif_model extends CI_Model
+{
 
 	/** @var Esyede\Curly */
 	protected $client;
@@ -17,16 +18,14 @@ class Notif_model extends CI_Model {
 
 	public function status_langganan()
 	{
-		if (empty($response = $this->api_pelanggan_pemesanan()))
-		{
+		if (empty($response = $this->api_pelanggan_pemesanan())) {
 			return null;
 		}
 
 		$tgl_akhir = $response->body->tanggal_berlangganan->akhir;
 		$tgl_akhir = strtotime($tgl_akhir);
 		$masa_berlaku = round(($tgl_akhir - time()) / (60 * 60 * 24));
-		switch (true)
-		{
+		switch (true) {
 			case ($masa_berlaku > 30):
 				$status = ['status' => 1, 'warna' => 'lightgreen', 'ikon' => 'fa-battery-full'];
 				break;
@@ -43,6 +42,7 @@ class Notif_model extends CI_Model {
 	public function permohonan_surat_baru()
 	{
 		$num_rows = $this->db->where('status', 0)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('permohonan_surat')->num_rows();
 		return $num_rows;
 	}
@@ -51,6 +51,7 @@ class Notif_model extends CI_Model {
 	{
 		$num_rows = $this->db->where('id_artikel !=', LAPORAN_MANDIRI)
 			->where('status', 2)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('komentar')->num_rows();
 		return $num_rows;
 	}
@@ -59,7 +60,7 @@ class Notif_model extends CI_Model {
 	 * Tipe 1: Inbox untuk admin, Outbox untuk pengguna layanan mandiri
 	 * Tipe 2: Outbox untuk admin, Inbox untuk pengguna layanan mandiri
 	 */
-	public function inbox_baru($tipe=1, $nik='')
+	public function inbox_baru($tipe = 1, $nik = '')
 	{
 		if ($nik) $this->db->where('email', $nik);
 
@@ -68,24 +69,26 @@ class Notif_model extends CI_Model {
 			->where('status', 2)
 			->where('tipe', $tipe)
 			->where('is_archived', 0)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('komentar')->num_rows();
 		return $num_rows;
 	}
 
-	public function surat_perlu_perhatian($nik='')
+	public function surat_perlu_perhatian($nik = '')
 	{
 		$num_rows = $this->db
 			->from('permohonan_surat s')
 			->join('tweb_penduduk p', 's.id_pemohon = p.id')
 			->where("p.nik", $nik)
 			->where('s.status in (1, 3)')
+			->where('s.desa_id', $this->config->item('desa_id'))
 			->get()->num_rows();
 		return $num_rows;
 	}
 
 	public function get_notif_by_kode($kode)
 	{
-		$notif = $this->db->where('kode', $kode)->get('notifikasi')->row_array();
+		$notif = $this->db->where('kode', $kode)->where('desa_id', $this->config->item('desa_id'))->get('notifikasi')->row_array();
 		return $notif;
 	}
 
@@ -107,11 +110,9 @@ class Notif_model extends CI_Model {
 
 	private function masih_berlaku($notif)
 	{
-		switch ($notif['kode'])
-		{
+		switch ($notif['kode']) {
 			case 'tracking_off':
-				if ($this->setting->enable_track)
-				{
+				if ($this->setting->enable_track) {
 					$this->db->where('kode', 'tracking_off')
 						->update('notifikasi', ['aktif' => 0]);
 					return false;
@@ -121,14 +122,14 @@ class Notif_model extends CI_Model {
 		return true;
 	}
 
-	public function update_notifikasi($kode, $non_aktifkan=false)
+	public function update_notifikasi($kode, $non_aktifkan = false)
 	{
 		// update tabel notifikasi
 		$notif = $this->notif_model->get_notif_by_kode($kode);
 
 		$tgl_sekarang = date("Y-m-d H:i:s");
 		$frekuensi = $notif['frekuensi'];
-		$string_frekuensi = "+". $frekuensi . " Days";
+		$string_frekuensi = "+" . $frekuensi . " Days";
 		$tambah_hari = strtotime($string_frekuensi); // tgl hari ini ditambah frekuensi
 		$data = [
 			'tgl_berikutnya' =>  date('Y-m-d H:i:s', $tambah_hari),
@@ -153,6 +154,7 @@ class Notif_model extends CI_Model {
 			->select('*')
 			->select("IF (jenis = 'persetujuan', CONCAT('A',id), CONCAT('Z',id)) AS urut")
 			->where('aktif', 1)
+			->where('desa_id', $this->config->item('desa_id'))
 			->order_by('urut', 'ASC')
 			->get('notifikasi')->result_array();
 		return $semua_notif;
@@ -160,7 +162,7 @@ class Notif_model extends CI_Model {
 
 	public function insert_notif($data)
 	{
-		$sql = $this->db->insert_string('notifikasi', $data) . duplicate_key_update_str($data);
+		$sql = $this->db->insert_string('notifikasi', $data + ['desa_id' => $this->config->item('desa_id')]) . duplicate_key_update_str($data);
 		$this->db->query($sql);
 	}
 
@@ -171,10 +173,8 @@ class Notif_model extends CI_Model {
 	 */
 	public function api_pelanggan_pemesanan()
 	{
-		if (empty($token = $this->setting->layanan_opendesa_token))
-		{
+		if (empty($token = $this->setting->layanan_opendesa_token)) {
 			$this->session->set_userdata('error_status_langganan', "Token Pelanggan Kosong.");
-
 			return null;
 		}
 
@@ -195,8 +195,7 @@ class Notif_model extends CI_Model {
 			);
 		}, 'status_langganan', 24 * 60 * 60);
 
-		if ($response->header->http_code != 200)
-		{
+		if ($response->header->http_code != 200) {
 			$this->cache->hapus_cache_untuk_semua('status_langganan');
 			$this->session->set_userdata('error_status_langganan', "{$response->header->http_code} {$response->body->messages->error}");
 
