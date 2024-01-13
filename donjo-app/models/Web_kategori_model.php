@@ -1,33 +1,29 @@
 <?php
 
-class Web_kategori_model extends CI_Model {
+class Web_kategori_model extends CI_Model
+{
 
 	private $urut_model;
 
 	public function __construct()
 	{
 		parent::__construct();
-	  require_once APPPATH.'/models/Urut_model.php';
+		require_once APPPATH . '/models/Urut_model.php';
 		$this->urut_model = new Urut_Model('kategori');
 	}
 
 	public function autocomplete()
 	{
-		$data = $this->db->distinct()->
-			select('kategori')->
-			where('parrent', 0)->
-			order_by('kategori')->
-			get('kategori')->result_array();
+		$data = $this->db->distinct()->select('kategori')->where('parrent', 0)->where('desa_id', $this->config->item('desa_id'))->order_by('kategori')->get('kategori')->result_array();
 		return autocomplete_data_ke_str($data);
 	}
 
 	private function search_sql()
 	{
-		if (isset($_SESSION['cari']))
-		{
-		$cari = $_SESSION['cari'];
+		if (isset($_SESSION['cari'])) {
+			$cari = $_SESSION['cari'];
 			$kw = $this->db->escape_like_str($cari);
-			$kw = '%' .$kw. '%';
+			$kw = '%' . $kw . '%';
 			$search_sql = " AND (kategori LIKE '$kw')";
 			return $search_sql;
 		}
@@ -35,15 +31,14 @@ class Web_kategori_model extends CI_Model {
 
 	private function filter_sql()
 	{
-		if (isset($_SESSION['filter']))
-		{
+		if (isset($_SESSION['filter'])) {
 			$kf = $_SESSION['filter'];
 			$filter_sql = " AND enabled = $kf";
 			return $filter_sql;
 		}
 	}
 
-	public function paging($p=1, $o=0)
+	public function paging($p = 1, $o = 0)
 	{
 		$sql = "SELECT COUNT(*) AS jml " . $this->list_data_sql();
 		$query = $this->db->query($sql);
@@ -61,34 +56,41 @@ class Web_kategori_model extends CI_Model {
 
 	private function list_data_sql()
 	{
-		$sql = " FROM kategori k WHERE parrent = 0";
+		$sql = " FROM kategori k WHERE parrent = 0 AND desa_id=" . $this->config->item('desa_id') . " ";
 		$sql .= $this->search_sql();
 		$sql .= $this->filter_sql();
 		return $sql;
 	}
 
-	public function list_data($o=0, $offset=0, $limit=500)
+	public function list_data($o = 0, $offset = 0, $limit = 500)
 	{
-		switch ($o)
-		{
-			case 1: $order_sql = ' ORDER BY kategori'; break;
-			case 2: $order_sql = ' ORDER BY kategori DESC'; break;
-			case 3: $order_sql = ' ORDER BY enabled'; break;
-			case 4: $order_sql = ' ORDER BY enabled DESC'; break;
-			default:$order_sql = ' ORDER BY urut';
+		switch ($o) {
+			case 1:
+				$order_sql = ' ORDER BY kategori';
+				break;
+			case 2:
+				$order_sql = ' ORDER BY kategori DESC';
+				break;
+			case 3:
+				$order_sql = ' ORDER BY enabled';
+				break;
+			case 4:
+				$order_sql = ' ORDER BY enabled DESC';
+				break;
+			default:
+				$order_sql = ' ORDER BY urut';
 		}
 
-		$paging_sql = ' LIMIT ' .$offset. ',' .$limit;
+		$paging_sql = ' LIMIT ' . $offset . ',' . $limit;
 		$sql = "SELECT k.*, k.kategori AS kategori " . $this->list_data_sql();
 		$sql .= $order_sql;
 		$sql .= $paging_sql;
 
 		$query = $this->db->query($sql);
-		$data =$query->result_array();
+		$data = $query->result_array();
 
 		$j = $offset;
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 
 			if ($data[$i]['enabled'] == 1)
@@ -113,7 +115,7 @@ class Web_kategori_model extends CI_Model {
 		$data['enabled'] = 1;
 		$data['urut'] = $this->urut_model->urut_max(array('parrent' => 0)) + 1;
 		$data['slug'] = url_title($data['kategori'], 'dash', TRUE);
-		$outp = $this->db->insert('kategori', $data);
+		$outp = $this->db->insert('kategori', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		status_sukses($outp); //Tampilkan Pesan
 
@@ -127,29 +129,25 @@ class Web_kategori_model extends CI_Model {
 
 	private function cek_nama($kategori)
 	{
-		$ada_nama = $this->db->where('kategori', $kategori)
+		$ada_nama = $this->db->where('kategori', $kategori)->where('desa_id',  $this->config->item('desa_id'))
 			->get('kategori')->num_rows();
-		if ($ada_nama)
-		{
-			$_SESSION['error_msg'].= " -> Nama kategori tidak boleh sama";
-		  $_SESSION['success'] = -1;
-		  return false;
+		if ($ada_nama) {
+			$_SESSION['error_msg'] .= " -> Nama kategori tidak boleh sama";
+			$_SESSION['success'] = -1;
+			return false;
 		}
 		return true;
 	}
 
-	public function update($id=0)
+	public function update($id = 0)
 	{
 		$this->session->unset_userdata('error_msg');
 		$this->session->set_userdata('success', 1);
 		$data = [];
 		$data['kategori'] = $this->input->post('kategori');
-		if ($data['kategori'] == $data['kategori_lama'])
-		{
+		if ($data['kategori'] == $data['kategori_lama']) {
 			return; // Tidak ada yg diubah
-		}
-		else
-		{
+		} else {
 			if (!$this->cek_nama($data['kategori']))
 				return;
 		}
@@ -160,13 +158,13 @@ class Web_kategori_model extends CI_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function delete($id='', $semua=false)
+	public function delete($id = '', $semua = false)
 	{
 		if (!$semua) $this->session->success = 1;
 
 		$outp = $this->db->where('id', $id)->delete('kategori');
 
-		status_sukses($outp, $gagal_saja=true); //Tampilkan Pesan
+		status_sukses($outp, $gagal_saja = true); //Tampilkan Pesan
 	}
 
 	public function delete_all()
@@ -174,24 +172,22 @@ class Web_kategori_model extends CI_Model {
 		$this->session->success = 1;
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
-			$this->delete($id, $semua=true);
+		foreach ($id_cb as $id) {
+			$this->delete($id, $semua = true);
 		}
 	}
 
-	public function list_sub_kategori($kategori=1)
+	public function list_sub_kategori($kategori = 1)
 	{
-		$sql = "SELECT * FROM kategori WHERE parrent = ? ORDER BY urut";
+		$sql = "SELECT * FROM kategori WHERE parrent = ? AND desa_id=" . $this->config->item('desa_id') . " ORDER BY urut";
 
 		$query = $this->db->query($sql, $kategori);
 		$data = $query->result_array();
 
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $i + 1;
 
-			if($data[$i]['enabled'] == 1)
+			if ($data[$i]['enabled'] == 1)
 				$data[$i]['aktif'] = "Ya";
 			else
 				$data[$i]['aktif'] = "Tidak";
@@ -204,13 +200,12 @@ class Web_kategori_model extends CI_Model {
 		$sql = "SELECT a.*
 			FROM artikel a
 			INNER JOIN kategori k ON a.id_kategori = k.id
-			WHERE tipe = '2'";
+			WHERE tipe = '2' AND desa_id=" . $this->config->item('desa_id') . " ";
 
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $i + 1;
 		}
 		return $data;
@@ -224,19 +219,19 @@ class Web_kategori_model extends CI_Model {
 		$data = $this->db
 			->select('k.*')
 			->where('enabled', 1)
+			->where('desa_id',  $this->config->item('desa_id'))
 			->order_by($urut)
 			->get('kategori k')
 			->result_array();
 
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $i + 1;
 			$data[$i]['judul'] = $data[$i]['kategori'];
 		}
 		return $data;
 	}
 
-	public function insert_sub_kategori($kategori=0)
+	public function insert_sub_kategori($kategori = 0)
 	{
 		$data = [];
 		$data['kategori'] = $this->input->post('kategori');
@@ -245,12 +240,12 @@ class Web_kategori_model extends CI_Model {
 		$data['urut'] = $this->urut_model->urut_max(array('parrent' => $kategori)) + 1;
 		$data['slug'] = url_title($data['kategori'], 'dash', TRUE);
 		$data['enabled'] = 1;
-		$outp = $this->db->insert('kategori', $data);
+		$outp = $this->db->insert('kategori', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function update_sub_kategori($id=0)
+	public function update_sub_kategori($id = 0)
 	{
 		$data = [];
 		$data['kategori'] = $this->input->post('kategori');
@@ -261,7 +256,7 @@ class Web_kategori_model extends CI_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function delete_sub_kategori($id='', $semua=false)
+	public function delete_sub_kategori($id = '', $semua = false)
 	{
 		if (!$semua) $this->session->success = 1;
 
@@ -275,13 +270,12 @@ class Web_kategori_model extends CI_Model {
 		$this->session->success = 1;
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
-			$this->delete_sub_kategori($id, $semua=true);
+		foreach ($id_cb as $id) {
+			$this->delete_sub_kategori($id, $semua = true);
 		}
 	}
 
-	public function kategori_lock($id='', $val=0)
+	public function kategori_lock($id = '', $val = 0)
 	{
 		$sql = "UPDATE kategori SET enabled = ? WHERE id = ?";
 		$outp = $this->db->query($sql, array($val, $id));
@@ -289,9 +283,9 @@ class Web_kategori_model extends CI_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function get_kategori($id=0)
+	public function get_kategori($id = 0)
 	{
-		$query = $this->db->where('id', $id)->or_where('slug', $id)->get('kategori');
+		$query = $this->db->where('id', $id)->where('desa_id',  $this->config->item('desa_id'))->or_where('slug', $id)->get('kategori');
 		$data  = $query->row_array();
 		return $data;
 	}
@@ -299,11 +293,9 @@ class Web_kategori_model extends CI_Model {
 	// $arah:
 	//		1 - turun
 	// 		2 - naik
-	public function urut($id, $arah, $kategori='')
+	public function urut($id, $arah, $kategori = '')
 	{
-  	$subset = !empty($kategori) ? array('parrent' => $kategori) : array('parrent' => 0);
-  	$this->urut_model->urut($id, $arah, $subset);
+		$subset = !empty($kategori) ? array('parrent' => $kategori) : array('parrent' => 0);
+		$this->urut_model->urut($id, $arah, $subset);
 	}
-
 }
-?>

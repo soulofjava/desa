@@ -11,7 +11,7 @@ class Web_sosmed_model extends CI_Model {
 	{
 		$id = $this->get_id($sosmed);
 
-		$data = $this->db->where('id', $id)->get('media_sosial')->row_array();
+		$data = $this->db->where('id', $id)->where('desa_id', $this->config->item('desa_id'))->get('media_sosial')->row_array();
 
 		return $data;
 	}
@@ -114,4 +114,3 @@ class Web_sosmed_model extends CI_Model {
 	}
 
 }
-?>
