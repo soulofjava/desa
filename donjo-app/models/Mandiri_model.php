@@ -1,4 +1,4 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') or exit('No direct script access allowed');
 /*
  *  File ini:
  *
@@ -40,7 +40,8 @@
  * @link 	https://github.com/OpenSID/OpenSID
  */
 
-class Mandiri_model extends CI_Model {
+class Mandiri_model extends CI_Model
+{
 
 	public function __construct()
 	{
@@ -52,7 +53,8 @@ class Mandiri_model extends CI_Model {
 		$data = $this->db
 			->select('p.nama')
 			->from('tweb_penduduk_mandiri pm')
-			->join('penduduk_hidup p','p.id = pm.id_pend', 'left')
+			->join('penduduk_hidup p', 'p.id = pm.id_pend', 'left')
+			->where('pm.desa_id', $this->config->item('desa_id'))
 			->get()
 			->result_array();
 
@@ -62,13 +64,12 @@ class Mandiri_model extends CI_Model {
 	private function search_sql()
 	{
 		$cari = $this->session->cari;
-		if ($cari)
-		{
+		if ($cari) {
 			$cari = $this->db->escape_like_str($cari);
 			$this->db
 				->group_start()
-					->like('p.nik', $cari)
-					->or_like('p.nama', $cari)
+				->like('p.nik', $cari)
+				->or_like('p.nama', $cari)
 				->group_end();
 		}
 	}
@@ -93,7 +94,8 @@ class Mandiri_model extends CI_Model {
 	{
 		$this->db
 			->from('tweb_penduduk_mandiri pm')
-			->join('penduduk_hidup p', 'pm.id_pend = p.id', 'LEFT');
+			->join('penduduk_hidup p', 'pm.id_pend = p.id', 'LEFT')
+			->where('pb.desa_id', $this->config->item('desa_id'));
 
 		$this->search_sql();
 	}
@@ -104,17 +106,33 @@ class Mandiri_model extends CI_Model {
 
 		$this->list_data_sql();
 
-		switch ($o)
-		{
-			case 1: $this->db->order_by('p.nik'); break;
-			case 2: $this->db->order_by('p.nik', DESC); break;
-			case 3: $this->db->order_by('p.nama'); break;
-			case 4: $this->db->order_by('p.nama', DESC); break;
-			case 5: $this->db->order_by('pm.tanggal_buat'); break;
-			case 6: $this->db->order_by('pm.tanggal_buat', DESC); break;
-			case 7: $this->db->order_by('pm.last_login'); break;
-			case 8: $this->db->order_by('pm.last_login', DESC); break;
-			default: '';
+		switch ($o) {
+			case 1:
+				$this->db->order_by('p.nik');
+				break;
+			case 2:
+				$this->db->order_by('p.nik', DESC);
+				break;
+			case 3:
+				$this->db->order_by('p.nama');
+				break;
+			case 4:
+				$this->db->order_by('p.nama', DESC);
+				break;
+			case 5:
+				$this->db->order_by('pm.tanggal_buat');
+				break;
+			case 6:
+				$this->db->order_by('pm.tanggal_buat', DESC);
+				break;
+			case 7:
+				$this->db->order_by('pm.last_login');
+				break;
+			case 8:
+				$this->db->order_by('pm.last_login', DESC);
+				break;
+			default:
+				'';
 		}
 
 		$this->db->limit($limit, $offset);
@@ -140,7 +158,7 @@ class Mandiri_model extends CI_Model {
 		$data['pin'] = hash_pin($pin); // Hash PIN
 		$data['tanggal_buat'] = date("Y-m-d H:i:s");
 		$data['id_pend'] = $this->input->post('id_pend');
-		$outp = $this->db->insert('tweb_penduduk_mandiri', $data);
+		$outp = $this->db->insert('tweb_penduduk_mandiri', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		status_sukses($data); //Tampilkan Pesan
 
@@ -169,7 +187,7 @@ class Mandiri_model extends CI_Model {
 
 	public function delete($id_pend = '', $semua = FALSE)
 	{
-		if ( ! $semua) $this->session->success = 1;
+		if (!$semua) $this->session->success = 1;
 
 		$outp = $this->db->where('id_pend', $id_pend)->delete('tweb_penduduk_mandiri');
 
@@ -182,8 +200,7 @@ class Mandiri_model extends CI_Model {
 		$this->session->success = 1;
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
+		foreach ($id_cb as $id) {
 			$this->delete($id, $semua = TRUE);
 		}
 	}
@@ -195,10 +212,10 @@ class Mandiri_model extends CI_Model {
 			->select('u.*, n.nama AS nama, n.nik AS nik')
 			->from('tweb_penduduk_mandiri u')
 			->join('penduduk_hidup n', 'u.id_pend = n.id', 'left')
-			->join('tweb_wil_clusterdesa w', 'n.id_cluster = w.id', 'left');
+			->join('tweb_wil_clusterdesa w', 'n.id_cluster = w.id', 'left')
+			->where('u.desa_id', $this->config->item('desa_id'));
 
-		if ($cari)
-		{
+		if ($cari) {
 			$this->db->where("(nik like '%{$cari}%' or nama like '%{$cari}%')");
 		}
 	}
@@ -223,8 +240,7 @@ class Mandiri_model extends CI_Model {
 			->limit($result_count, $offset);
 		$data = $this->db->get()->result_array();
 
-		foreach ($data as $row )
-		{
+		foreach ($data as $row) {
 			$nama = addslashes($row['nama']);
 			$alamat = addslashes("Alamat: RT-{$row['rt']}, RW-{$row['rw']} {$row['dusun']}");
 			$outp = "{$row['nik']} - {$nama} \n {$alamat}";
@@ -254,6 +270,7 @@ class Mandiri_model extends CI_Model {
 			->from('tweb_penduduk')
 			->where('status', 1)
 			->where('nik', $nik)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get()
 			->row_array();
 	}
@@ -265,6 +282,7 @@ class Mandiri_model extends CI_Model {
 			->where('nik <>', '')
 			->where('nik <>', 0)
 			->where('id NOT IN (SELECT id_pend FROM tweb_penduduk_mandiri)')
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('penduduk_hidup')
 			->result_array();
 
@@ -273,10 +291,11 @@ class Mandiri_model extends CI_Model {
 
 	public function get_penduduk($id_pend, $id_nik = FALSE)
 	{
-		($id_nik === TRUE) ? $this->db->where('nik', $id_pend) : $this->db->where('id', $id_pend);
+		($id_nik === TRUE) ? $this->db->where('nik', $id_pend)->where('desa_id', $this->config->item('desa_id')) : $this->db->where('id', $id_pend)->where('desa_id', $this->config->item('desa_id'));
 
 		$data = $this->db
 			->select('id, nik, nama, telepon')
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('penduduk_hidup')
 			->row_array();
 
@@ -285,12 +304,13 @@ class Mandiri_model extends CI_Model {
 
 	public function get_mandiri($id_pend, $id_nik = FALSE)
 	{
-		($id_nik === TRUE) ? $this->db->where('p.nik', $id_pend) : $this->db->where('pm.id_pend', $id_pend);
+		($id_nik === TRUE) ? $this->db->where('p.nik', $id_pend)->where('desa_id', $this->config->item('desa_id')) : $this->db->where('pm.id_pend', $id_pend)->where('desa_id', $this->config->item('desa_id'));
 
 		$data = $this->db
 			->select('pm.*, p.nama, p.nik, p.email, p.telepon')
 			->from('tweb_penduduk_mandiri pm')
 			->join('penduduk_hidup p', 'pm.id_pend = p.id', 'LEFT')
+			->where('pm.desa_id', $this->config->item('desa_id'))
 			->get()
 			->row_array();
 
@@ -311,11 +331,11 @@ class Mandiri_model extends CI_Model {
 			->join('tweb_penduduk p', 'pm.id_pend = p.id', 'left')
 			->join('tweb_keluarga k', 'p.id_kk = k.id', 'left')
 			->where('p.nik', $nik)
+			->where('pm.desa_id', $this->config->item('desa_id'))
 			->get()
 			->row();
 
-		switch (true)
-		{
+		switch (true) {
 			case ($data && $pin == $data->pin):
 				$session = [
 					'mandiri' => 1,
@@ -348,7 +368,7 @@ class Mandiri_model extends CI_Model {
 
 	public function update_login(array $data = [])
 	{
-		$this->db->where('id_pend', $data['id_pend'])->update('tweb_penduduk_mandiri', $data);
+		$this->db->where('id_pend', $data['id_pend'])->where('desa_id', $this->config->item('desa_id'))->update('tweb_penduduk_mandiri', $data);
 	}
 
 	public function ganti_pin()
@@ -363,12 +383,12 @@ class Mandiri_model extends CI_Model {
 		$pin = $this->db
 			->select('pin')
 			->where('id_pend', $id_pend)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('tweb_penduduk_mandiri')
 			->row()
 			->pin;
 
-		switch (true)
-		{
+		switch (true) {
 			case ($pin_lama != $pin):
 				$respon = [
 					'status' => -1, // Notif gagal
@@ -400,5 +420,4 @@ class Mandiri_model extends CI_Model {
 		}
 		$this->session->set_flashdata('notif', $respon);
 	}
-
 }
