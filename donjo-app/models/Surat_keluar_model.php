@@ -1,6 +1,7 @@
-<?php class Surat_keluar_model extends MY_Model {
-  // Konfigurasi untuk library 'upload'
-  protected $uploadConfig = array();
+<?php class Surat_keluar_model extends MY_Model
+{
+	// Konfigurasi untuk library 'upload'
+	protected $uploadConfig = array();
 
 	public function __construct()
 	{
@@ -9,12 +10,12 @@
 		$this->load->library('upload');
 		// Untuk dapat menggunakan fungsi generator()
 		$this->load->helper('donjolib');
-    // Helper upload file
+		// Helper upload file
 		$this->load->helper('pict_helper');
 		$this->uploadConfig = array(
 			'upload_path' => LOKASI_ARSIP,
 			'allowed_types' => 'gif|jpg|jpeg|png|pdf',
-			'max_size' => max_upload()*1024,
+			'max_size' => max_upload() * 1024,
 		);
 	}
 
@@ -26,21 +27,19 @@
 
 	private function search_sql()
 	{
-		if ($cari = $this->session->cari)
-		{
+		if ($cari = $this->session->cari) {
 			$cari = $this->db->escape_like_str($cari);
 			$this->db
 				->group_start()
-					->like('u.tujuan', $cari)
-					->or_like('u.isi_singkat', $cari)
+				->like('u.tujuan', $cari)
+				->or_like('u.isi_singkat', $cari)
 				->group_end();
 		}
 	}
 
 	private function filter_sql()
 	{
-		if ($filter = $this->session->filter)
-		{
+		if ($filter = $this->session->filter) {
 			$this->db->where('YEAR(u.tanggal_surat)', $filter);
 		}
 	}
@@ -49,11 +48,12 @@
 	private function list_data_sql()
 	{
 		$this->db->from('surat_keluar u');
+		$this->db->where('u.desa_id', $this->config->item('desa_id'));
 		$this->search_sql();
 		$this->filter_sql();
 	}
 
-	public function paging($p=1, $o=0)
+	public function paging($p = 1, $o = 0)
 	{
 		$this->list_data_sql();
 		$jml_data = $this->db
@@ -70,24 +70,41 @@
 		return $this->paging;
 	}
 
-	public function list_data($o=0, $offset=0, $limit=500)
+	public function list_data($o = 0, $offset = 0, $limit = 500)
 	{
 		$this->list_data_sql();
 		//Ordering
-		switch ($o)
-		{
-			case 1: $order = ' YEAR(u.tanggal_surat) ASC, u.nomor_urut ASC'; break;
-			case 2: $order = ' YEAR(u.tanggal_surat) DESC, u.nomor_urut DESC'; break;
-			case 3: $order = ' u.tanggal_surat'; break;
-			case 4: $order = ' u.tanggal_surat DESC'; break;
-			case 5: $order = ' u.tujuan'; break;
-			case 6: $order = ' u.tujuan DESC'; break;
-			case 7: $order = ' u.tanggal_pengiriman'; break;
-			case 8: $order = ' u.tanggal_pengiriman DESC'; break;
-			default:$order = ' u.id';
+		switch ($o) {
+			case 1:
+				$order = ' YEAR(u.tanggal_surat) ASC, u.nomor_urut ASC';
+				break;
+			case 2:
+				$order = ' YEAR(u.tanggal_surat) DESC, u.nomor_urut DESC';
+				break;
+			case 3:
+				$order = ' u.tanggal_surat';
+				break;
+			case 4:
+				$order = ' u.tanggal_surat DESC';
+				break;
+			case 5:
+				$order = ' u.tujuan';
+				break;
+			case 6:
+				$order = ' u.tujuan DESC';
+				break;
+			case 7:
+				$order = ' u.tanggal_pengiriman';
+				break;
+			case 8:
+				$order = ' u.tanggal_pengiriman DESC';
+				break;
+			default:
+				$order = ' u.id';
 		}
 		$data = $this->db
 			->select('u.*')
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->order_by($order)
 			->limit($limit, $offset)
 			->get()
@@ -97,10 +114,7 @@
 
 	public function list_tahun_surat()
 	{
-		$query = $this->db->distinct()->
-			select('YEAR(tanggal_surat) AS tahun')->
-			order_by('YEAR(tanggal_surat)','DESC')->
-			get('surat_keluar')->result_array();
+		$query = $this->db->distinct()->select('YEAR(tanggal_surat) AS tahun')->where('desa_id', $this->config->item('desa_id'))->order_by('YEAR(tanggal_surat)', 'DESC')->get('surat_keluar')->result_array();
 		return $query;
 	}
 
@@ -122,10 +136,9 @@
 
 		// Cek nama berkas user boleh lebih dari 80 karakter (+20 untuk unique id) karena -
 		// karakter maksimal yang bisa ditampung kolom surat_keluar.berkas_scan hanya 100 karakter
-		if ($adaLampiran && ((strlen($_FILES['satuan']['name']) + 20 ) >= 100))
-		{
+		if ($adaLampiran && ((strlen($_FILES['satuan']['name']) + 20) >= 100)) {
 			$_SESSION['success'] = -1;
-			$_SESSION['error_msg'] = ' -> Nama berkas yang coba Anda unggah terlalu panjang, '.
+			$_SESSION['error_msg'] = ' -> Nama berkas yang coba Anda unggah terlalu panjang, ' .
 				'batas maksimal yang diijinkan adalah 80 karakter';
 			redirect('surat_keluar');
 		}
@@ -133,10 +146,9 @@
 		$uploadData = NULL;
 		$uploadError = NULL;
 		// Ada lampiran file
-		if ($adaLampiran === TRUE)
-		{
+		if ($adaLampiran === TRUE) {
 			// Tes tidak berisi script PHP
-			if(isPHP($_FILES['foto']['tmp_name'], $_FILES['foto']['name'])){
+			if (isPHP($_FILES['foto']['tmp_name'], $_FILES['foto']['name'])) {
 				$_SESSION['error_msg'] .= " -> Jenis file ini tidak diperbolehkan ";
 				$_SESSION['success'] = -1;
 				redirect('man_user');
@@ -144,23 +156,21 @@
 			// Inisialisasi library 'upload'
 			$this->upload->initialize($this->uploadConfig);
 			// Upload sukses
-			if ($this->upload->do_upload('satuan'))
-			{
+			if ($this->upload->do_upload('satuan')) {
 				$uploadData = $this->upload->data();
 				// Buat nama file unik agar url file susah ditebak dari browser
 				$namaFileUnik = tambahSuffixUniqueKeNamaFile($uploadData['file_name']);
 				// Ganti nama file asli dengan nama unik untuk mencegah akses langsung dari browser
 				$fileRenamed = rename(
-					$this->uploadConfig['upload_path'].$uploadData['file_name'],
-					$this->uploadConfig['upload_path'].$namaFileUnik
+					$this->uploadConfig['upload_path'] . $uploadData['file_name'],
+					$this->uploadConfig['upload_path'] . $namaFileUnik
 				);
 				// Ganti nama di array upload jika file berhasil di-rename --
 				// jika rename gagal, fallback ke nama asli
 				$uploadData['file_name'] = $fileRenamed ? $namaFileUnik : $uploadData['file_name'];
 			}
 			// Upload gagal
-			else
-			{
+			else {
 				$uploadError = $this->upload->display_errors(NULL, NULL);
 			}
 		}
@@ -172,7 +182,7 @@
 		// penerapan transcation karena insert ke 2 tabel
 		$this->db->trans_start();
 
-		$indikatorSukses = is_null($uploadError) && $this->db->insert('surat_keluar', $data);
+		$indikatorSukses = is_null($uploadError) && $this->db->insert('surat_keluar', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		$insert_id = $this->db->insert_id();
 
@@ -181,7 +191,7 @@
 
 		// Set session berdasarkan hasil operasi
 		status_sukses($indikatorSukses); //Tampilkan Pesan
-		$_SESSION['error_msg'] = $_SESSION['success'] === 1 ? NULL : ' -> '.$uploadError;
+		$_SESSION['error_msg'] = $_SESSION['success'] === 1 ? NULL : ' -> ' . $uploadError;
 	}
 
 	private function validasi(&$data)
@@ -194,7 +204,7 @@
 		$data['isi_singkat'] = strip_tags($data['isi_singkat']);
 	}
 
-	/**
+	/*
 	 * Update data di tabel surat_keluar
 	 * @param   integer  $idSuratMasuk  Id berkas untuk query ke database
 	 * @return  void
@@ -214,8 +224,8 @@
 		$berkasLama = $this->getNamaBerkasScan($idSuratMasuk);
 
 		// Lokasi berkas scan lama (absolut)
-		$lokasiBerkasLama = $this->uploadConfig['upload_path'].$berkasLama;
-		$lokasiBerkasLama = str_replace('/', DIRECTORY_SEPARATOR, FCPATH.$lokasiBerkasLama);
+		$lokasiBerkasLama = $this->uploadConfig['upload_path'] . $berkasLama;
+		$lokasiBerkasLama = str_replace('/', DIRECTORY_SEPARATOR, FCPATH . $lokasiBerkasLama);
 
 		$indikatorSukses = FALSE;
 
@@ -233,28 +243,25 @@
 		$this->db->trans_start();
 
 		// Ada lampiran file
-		if ($adaLampiran === TRUE)
-		{
+		if ($adaLampiran === TRUE) {
 			// Tes tidak berisi script PHP
-			if(isPHP($_FILES['foto']['tmp_name'], $_FILES['satuan']['name'])){
-				$_SESSION['error_msg'].= " -> Jenis file ini tidak diperbolehkan ";
-				$_SESSION['success']=-1;
+			if (isPHP($_FILES['foto']['tmp_name'], $_FILES['satuan']['name'])) {
+				$_SESSION['error_msg'] .= " -> Jenis file ini tidak diperbolehkan ";
+				$_SESSION['success'] = -1;
 				redirect('surat_keluar');
 			}
 			// Cek nama berkas tidak boleh lebih dari 80 karakter (+20 untuk unique id) karena -
 			// karakter maksimal yang bisa ditampung kolom surat_keluar.berkas_scan hanya 100 karakter
-			if ((strlen($_FILES['satuan']['name']) + 20 ) >= 100)
-			{
+			if ((strlen($_FILES['satuan']['name']) + 20) >= 100) {
 				$_SESSION['success'] = -1;
-				$_SESSION['error_msg'] = ' -> Nama berkas yang coba Anda unggah terlalu panjang, '.
-				'batas maksimal yang diijinkan adalah 80 karakter';
+				$_SESSION['error_msg'] = ' -> Nama berkas yang coba Anda unggah terlalu panjang, ' .
+					'batas maksimal yang diijinkan adalah 80 karakter';
 				redirect('surat_keluar');
 			}
 			// Inisialisasi library 'upload'
 			$this->upload->initialize($this->uploadConfig);
 			// Upload sukses
-			if ($this->upload->do_upload('satuan'))
-			{
+			if ($this->upload->do_upload('satuan')) {
 				$uploadData = $this->upload->data();
 				// Hapus berkas dari disk
 				$oldFileRemoved = unlink($lokasiBerkasLama) && !file_exists($lokasiBerkasLama);
@@ -264,8 +271,8 @@
 				$namaFileUnik = tambahSuffixUniqueKeNamaFile($uploadData['file_name']);
 				// Ganti nama file asli dengan nama unik untuk mencegah akses langsung dari browser
 				$uploadedFileRenamed = rename(
-					$this->uploadConfig['upload_path'].$uploadData['file_name'],
-					$this->uploadConfig['upload_path'].$namaFileUnik
+					$this->uploadConfig['upload_path'] . $uploadData['file_name'],
+					$this->uploadConfig['upload_path'] . $namaFileUnik
 				);
 
 				$uploadData['file_name'] = ($uploadedFileRenamed === FALSE) ?: $namaFileUnik;
@@ -281,17 +288,14 @@
 					? NULL : 'Gagal memperbarui data di database';
 			}
 			// Upload gagal
-			else
-			{
+			else {
 				$_SESSION['error_msg'] = $this->upload->display_errors(NULL, NULL);
 			}
 		}
 		// Tidak ada file upload
-		else
-		{
+		else {
 			unset($data['berkas_scan']);
-			if ($hapusLampiranLama)
-			{
+			if ($hapusLampiranLama) {
 				$data['berkas_scan'] = NULL;
 				$adaBerkasLamaDiDisk = file_exists($lokasiBerkasLama);
 				$oldFileRemoved = $adaBerkasLamaDiDisk && unlink($lokasiBerkasLama);
@@ -312,27 +316,25 @@
 
 	public function get_surat_keluar($id)
 	{
-		$surat_keluar = $this->db->where('id', $id)->get('surat_keluar')->row_array();
+		$surat_keluar = $this->db->where('id', $id)->where('desa_id', $this->config->item('desa_id'))->get('surat_keluar')->row_array();
 		return $surat_keluar;
 	}
 
-	/**
+	/*
 	 * Hapus record surat masuk beserta file lampirannya (jika ada)
 	 * @param   string  $idSuratMasuk  Id surat masuk
 	 * @return  void
 	 */
-	public function delete($idSuratMasuk, $semua=false)
+	public function delete($idSuratMasuk, $semua = false)
 	{
-		if (!$semua)
-		{
+		if (!$semua) {
 			$this->session->success = 1;
 			$this->session->error_msg = '';
 		}
 		// Type check
 		$idSuratMasuk = is_string($idSuratMasuk) ? $idSuratMasuk : strval($idSuratMasuk);
 		// Redirect ke halaman surat masuk jika Id kosong
-		if (empty($idSuratMasuk))
-		{
+		if (empty($idSuratMasuk)) {
 			$_SESSION['success'] = -1;
 			$_SESSION['error_msg'] = ' -> Data yang anda minta tidak ditemukan';
 			redirect('surat_keluar');
@@ -342,28 +344,23 @@
 
 		$namaBerkas = $this->getNamaBerkasScan($idSuratMasuk);
 
-		if (!is_null($namaBerkas))
-		{
-			$lokasiBerkasLama = $this->uploadConfig['upload_path'].$namaBerkas;
-			$lokasiBerkasLama = str_replace('/', DIRECTORY_SEPARATOR, FCPATH.$lokasiBerkasLama);
+		if (!is_null($namaBerkas)) {
+			$lokasiBerkasLama = $this->uploadConfig['upload_path'] . $namaBerkas;
+			$lokasiBerkasLama = str_replace('/', DIRECTORY_SEPARATOR, FCPATH . $lokasiBerkasLama);
 
-			if (file_exists($lokasiBerkasLama))
-			{
+			if (file_exists($lokasiBerkasLama)) {
 				$hapusLampiranLama = unlink($lokasiBerkasLama);
 				$hapusLampiranLama = !file_exists($lokasiBerkasLama);
 				$_SESSION['error_msg'] = $hapusLampiranLama === TRUE
-					? NULL :' -> Gagal menghapus berkas dari disk';
+					? NULL : ' -> Gagal menghapus berkas dari disk';
 			}
 
-			if (is_null($_SESSION['error_msg']))
-			{
+			if (is_null($_SESSION['error_msg'])) {
 				$hapusRecordDb = $this->db->where('id', $idSuratMasuk)->delete('surat_keluar');
 				$_SESSION['error_msg'] = $hapusRecordDb === TRUE
 					? NULL : ' -> Gagal menghapus record dari database';
 			}
-		}
-		else
-		{
+		} else {
 			$hapusRecordDb = $this->db->where('id', $idSuratMasuk)->delete('surat_keluar');
 			$_SESSION['error_msg'] = $hapusRecordDb === TRUE
 				? NULL : ' -> Gagal menghapus record dari database';
@@ -378,16 +375,15 @@
 		$this->session->error_msg = '';
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
-			$this->delete($id, $semua=true);
+		foreach ($id_cb as $id) {
+			$this->delete($id, $semua = true);
 		}
 	}
 
 	//! ==============================================================
 	//! Helper Methods
 	//! ==============================================================
-	/**
+	/*
 	 * Ambil nama berkas scan dari database berdasarkan Id surat masuk
 	 * @param  string       $idSuratMasuk  Id pada tabel surat_keluar
 	 * @param  string       $kolom         Kolom yang akan diambil datanya
@@ -396,7 +392,7 @@
 	public function getNamaBerkasScan($idSuratMasuk)
 	{
 		// Ambil nama berkas dari database
-		$sql = "SELECT berkas_scan FROM surat_keluar WHERE id = ? LIMIT 1;";
+		$sql = "SELECT berkas_scan FROM surat_keluar WHERE id = ? AND desa_id = " . $this->config->item('desa_id') . " LIMIT 1;";
 		$query = $this->db->query($sql, array($idSuratMasuk));
 		$namaBerkas = $query->row();
 		$namaBerkas = is_object($namaBerkas) ? $namaBerkas->berkas_scan : NULL;
@@ -410,7 +406,4 @@
 			->set('ekspedisi', $masuk)
 			->update('surat_keluar');
 	}
-
 }
-
-?>

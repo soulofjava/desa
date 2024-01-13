@@ -1,4 +1,5 @@
 <?php
+
 /**
  * File ini:
  *
@@ -44,17 +45,18 @@
  * @link  https://github.com/OpenSID/OpenSID
  */
 
-class Shortcode_model extends CI_Model {
+class Shortcode_model extends CI_Model
+{
 
-  public function __construct()
-  {
-    parent::__construct();
-    $this->load->model('keuangan_grafik_model');
-    $this->load->model('keuangan_grafik_manual_model');
-    $this->load->model('laporan_penduduk_model');
-    $this->load->model('config_model');
-    $this->load->model('pamong_model');
-  }
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->model('keuangan_grafik_model');
+		$this->load->model('keuangan_grafik_manual_model');
+		$this->load->model('laporan_penduduk_model');
+		$this->load->model('config_model');
+		$this->load->model('pamong_model');
+	}
 
 	// Shortcode untuk isi artikel
 	public function shortcode($str = '')
@@ -70,57 +72,32 @@ class Shortcode_model extends CI_Model {
 
 	private function extract_shortcode($type, $thn)
 	{
-		if ($type == 'grafik-RP-APBD')
-		{
-		  return $this->grafik_rp_apbd($type, $thn);
-		}
-		elseif ($type == 'lap-RP-APBD-sm1')
-		{
-		  return $this->tabel_rp_apbd($type, $thn, $smt1=true);
-		}
-		elseif ($type == 'lap-RP-APBD-sm2')
-		{
-		  return $this->tabel_rp_apbd($type, $thn, $smt1=false);
-		}
-		elseif ($type == 'lap-RP-APBD-Bidang-sm1')
-		{
-		  return $this->tabel_rp_apbd_bidang($type, $thn, $smt1=true);
-		}
-		elseif ($type == 'lap-RP-APBD-Bidang-sm2')
-		{
-		  return $this->tabel_rp_apbd_bidang($type, $thn, $smt1=false);
-		}
-		elseif ($type == 'penerima_bantuan_penduduk_grafik')
-		{
-		  return $this->penerima_bantuan_penduduk_grafik($stat=0, $tipe=0);
-		}
-		elseif ($type == 'penerima_bantuan_penduduk_daftar')
-		{
-		  return $this->penerima_bantuan_penduduk_daftar($stat=0, $tipe=0);
-		}
-		elseif ($type == 'penerima_bantuan_keluarga_grafik')
-		{
-		  return $this->penerima_bantuan_keluarga_grafik($stat=0, $tipe=0);
-		}
-		elseif ($type == 'penerima_bantuan_keluarga_daftar')
-		{
-		  return $this->penerima_bantuan_keluarga_daftar($stat=0, $tipe=0);
-		}
-		elseif ($type == 'grafik-RP-APBD-manual')
-		{
-		  return $this->grafik_rp_apbd_manual($type, $thn);
-		}
-		elseif ($type == 'lap-RP-APBD-Bidang-manual')
-		{
-		  return $this->tabel_rp_apbd_bidang_manual($type, $thn);
-		}
-    elseif ($type == 'sotk_w_bpd')
-		{
-		  return $this->sotk_w_bpd();
-		}
-    elseif ($type == 'sotk_wo_bpd')
-		{
-		  return $this->sotk_wo_bpd();
+		if ($type == 'grafik-RP-APBD') {
+			return $this->grafik_rp_apbd($type, $thn);
+		} elseif ($type == 'lap-RP-APBD-sm1') {
+			return $this->tabel_rp_apbd($type, $thn, $smt1 = true);
+		} elseif ($type == 'lap-RP-APBD-sm2') {
+			return $this->tabel_rp_apbd($type, $thn, $smt1 = false);
+		} elseif ($type == 'lap-RP-APBD-Bidang-sm1') {
+			return $this->tabel_rp_apbd_bidang($type, $thn, $smt1 = true);
+		} elseif ($type == 'lap-RP-APBD-Bidang-sm2') {
+			return $this->tabel_rp_apbd_bidang($type, $thn, $smt1 = false);
+		} elseif ($type == 'penerima_bantuan_penduduk_grafik') {
+			return $this->penerima_bantuan_penduduk_grafik($stat = 0, $tipe = 0);
+		} elseif ($type == 'penerima_bantuan_penduduk_daftar') {
+			return $this->penerima_bantuan_penduduk_daftar($stat = 0, $tipe = 0);
+		} elseif ($type == 'penerima_bantuan_keluarga_grafik') {
+			return $this->penerima_bantuan_keluarga_grafik($stat = 0, $tipe = 0);
+		} elseif ($type == 'penerima_bantuan_keluarga_daftar') {
+			return $this->penerima_bantuan_keluarga_daftar($stat = 0, $tipe = 0);
+		} elseif ($type == 'grafik-RP-APBD-manual') {
+			return $this->grafik_rp_apbd_manual($type, $thn);
+		} elseif ($type == 'lap-RP-APBD-Bidang-manual') {
+			return $this->tabel_rp_apbd_bidang_manual($type, $thn);
+		} elseif ($type == 'sotk_w_bpd') {
+			return $this->sotk_w_bpd();
+		} elseif ($type == 'sotk_wo_bpd') {
+			return $this->sotk_wo_bpd();
 		}
 	}
 
@@ -130,7 +107,7 @@ class Shortcode_model extends CI_Model {
 		$data_widget = $data['data_widget'];
 
 		ob_start();
-			include("donjo-app/views/keuangan/grafik_rp_apbd_chart.php");
+		include("donjo-app/views/keuangan/grafik_rp_apbd_chart.php");
 		$res = ob_get_clean();
 		return $res;
 	}
@@ -148,12 +125,12 @@ class Shortcode_model extends CI_Model {
 		$sm = $smt1 ? '1' : '2';
 
 		ob_start();
-			include("donjo-app/views/keuangan/tabel_laporan_rp_apbd_artikel.php");
+		include("donjo-app/views/keuangan/tabel_laporan_rp_apbd_artikel.php");
 		$output = ob_get_clean();
 		return $output;
 	}
 
-  private function tabel_rp_apbd_bidang($type, $thn, $smt1)
+	private function tabel_rp_apbd_bidang($type, $thn, $smt1)
 	{
 		$data = $this->keuangan_grafik_model->lap_rp_apbd($thn, $smt1);
 		$desa = $this->config_model->get_data();
@@ -167,23 +144,23 @@ class Shortcode_model extends CI_Model {
 		$jenis = 'bidang';
 
 		ob_start();
-			include("donjo-app/views/keuangan/tabel_laporan_rp_apbd_artikel.php");
+		include("donjo-app/views/keuangan/tabel_laporan_rp_apbd_artikel.php");
 		$output = ob_get_clean();
 		return $output;
 	}
 
-  private function grafik_rp_apbd_manual($type, $thn)
+	private function grafik_rp_apbd_manual($type, $thn)
 	{
 		$data = $this->keuangan_grafik_manual_model->grafik_keuangan_tema($thn);
 		$data_widget = $data['data_widget'];
 
 		ob_start();
-			include("donjo-app/views/keuangan/grafik_rp_apbd_chart.php");
+		include("donjo-app/views/keuangan/grafik_rp_apbd_chart.php");
 		$res = ob_get_clean();
 		return $res;
 	}
 
-  private function tabel_rp_apbd_bidang_manual($type, $thn)
+	private function tabel_rp_apbd_bidang_manual($type, $thn)
 	{
 		$data = $this->keuangan_grafik_manual_model->lap_rp_apbd($thn);
 		$desa = $this->config_model->get_data();
@@ -196,87 +173,87 @@ class Shortcode_model extends CI_Model {
 		$jenis = 'bidang';
 
 		ob_start();
-			include("donjo-app/views/keuangan/tabel_laporan_rp_apbd_artikel.php");
+		include("donjo-app/views/keuangan/tabel_laporan_rp_apbd_artikel.php");
 		$output = ob_get_clean();
 		return $output;
 	}
 
-  private function penerima_bantuan_penduduk_grafik($stat=0, $tipe=0)
-	{
-    $heading = 'Penerima Bantuan (Penduduk)';
-		$stat = $this->laporan_penduduk_model->list_data('bantuan_penduduk',0);
-		$tipe = $tipe;
-		$st = $stat;
-		$lap = 'bantuan_penduduk';
-
-		ob_start();
-			include("donjo-app/views/statistik/penduduk_grafik_web.php");
-		$res = ob_get_clean();
-		return $res;
-	}
-
-  private function penerima_bantuan_penduduk_daftar($stat=0, $tipe=0)
+	private function penerima_bantuan_penduduk_grafik($stat = 0, $tipe = 0)
 	{
 		$heading = 'Penerima Bantuan (Penduduk)';
-		$stat = $this->laporan_penduduk_model->list_data('bantuan_penduduk',0);
+		$stat = $this->laporan_penduduk_model->list_data('bantuan_penduduk', 0);
 		$tipe = $tipe;
 		$st = $stat;
 		$lap = 'bantuan_penduduk';
 
 		ob_start();
-			include("donjo-app/views/statistik/peserta_bantuan.php");
+		include("donjo-app/views/statistik/penduduk_grafik_web.php");
 		$res = ob_get_clean();
 		return $res;
 	}
 
-  private function penerima_bantuan_keluarga_grafik($stat=0, $tipe=0)
+	private function penerima_bantuan_penduduk_daftar($stat = 0, $tipe = 0)
+	{
+		$heading = 'Penerima Bantuan (Penduduk)';
+		$stat = $this->laporan_penduduk_model->list_data('bantuan_penduduk', 0);
+		$tipe = $tipe;
+		$st = $stat;
+		$lap = 'bantuan_penduduk';
+
+		ob_start();
+		include("donjo-app/views/statistik/peserta_bantuan.php");
+		$res = ob_get_clean();
+		return $res;
+	}
+
+	private function penerima_bantuan_keluarga_grafik($stat = 0, $tipe = 0)
 	{
 		$heading = 'Penerima Bantuan (Keluarga)';
-		$stat = $this->laporan_penduduk_model->list_data('bantuan_keluarga',0);
+		$stat = $this->laporan_penduduk_model->list_data('bantuan_keluarga', 0);
 		$tipe = $tipe;
 		$st = $stat;
 		$lap = 'bantuan_keluarga';
 
 		ob_start();
-			include("donjo-app/views/statistik/penduduk_grafik_web.php");
+		include("donjo-app/views/statistik/penduduk_grafik_web.php");
 		$res = ob_get_clean();
 		return $res;
 	}
 
-  private function penerima_bantuan_keluarga_daftar($stat=0, $tipe=0)
+	private function penerima_bantuan_keluarga_daftar($stat = 0, $tipe = 0)
 	{
 		$heading = 'Penerima Bantuan (Keluarga)';
-		$stat = $this->laporan_penduduk_model->list_data('bantuan_keluarga',0);
+		$stat = $this->laporan_penduduk_model->list_data('bantuan_keluarga', 0);
 		$tipe = $tipe;
 		$st = $stat;
 		$lap = 'bantuan_keluarga';
 
 		ob_start();
-			include("donjo-app/views/statistik/peserta_bantuan.php");
+		include("donjo-app/views/statistik/peserta_bantuan.php");
 		$res = ob_get_clean();
 		return $res;
 	}
 
-  private function sotk_w_bpd()
+	private function sotk_w_bpd()
 	{
-    $desa = $this->config_model->get_data();
+		$desa = $this->config_model->get_data();
 		$bagan = $this->pamong_model->list_bagan();
 		$ada_bpd = true;
 
 		ob_start();
-			include("donjo-app/views/home/bagan_sisip.php");
+		include("donjo-app/views/home/bagan_sisip.php");
 		$res = ob_get_clean();
 		return $res;
 	}
 
-  private function sotk_wo_bpd()
+	private function sotk_wo_bpd()
 	{
-    $desa = $this->config_model->get_data();
+		$desa = $this->config_model->get_data();
 		$bagan = $this->pamong_model->list_bagan();
 		$ada_bpd = false;
 
 		ob_start();
-			include("donjo-app/views/home/bagan_sisip.php");
+		include("donjo-app/views/home/bagan_sisip.php");
 		$res = ob_get_clean();
 		return $res;
 	}
@@ -296,72 +273,45 @@ class Shortcode_model extends CI_Model {
 
 	private function converted_sc_list($type, $thn)
 	{
-		if ($type == "lap-RP-APBD-sm1")
-		{
+		if ($type == "lap-RP-APBD-sm1") {
 			$output = "<i class='fa fa-table'></i> Tabel Laporan APBDes Smt. 1 TA. " . $thn . ", ";
 			return $output;
-		}
-		elseif ($type == "lap-RP-APBD-sm2")
-		{
+		} elseif ($type == "lap-RP-APBD-sm2") {
 			$output = "<i class='fa fa-table'></i> Tabel Laporan APBDes Smt. 2 TA. " . $thn . ", ";
 			return $output;
-		}
-		elseif ($type == "lap-RP-APBD-Bidang-sm1")
-		{
+		} elseif ($type == "lap-RP-APBD-Bidang-sm1") {
 			$output = "<i class='fa fa-table'></i> Tabel Laporan APBDes Smt. 1 TA. " . $thn . ", ";
 			return $output;
-		}
-		elseif ($type == "lap-RP-APBD-Bidang-sm2")
-		{
+		} elseif ($type == "lap-RP-APBD-Bidang-sm2") {
 			$output = "<i class='fa fa-table'></i> Tabel Laporan APBDes Smt. 2 TA. " . $thn . ", ";
 			return $output;
-		}
-		elseif ($type == "grafik-RP-APBD")
-		{
+		} elseif ($type == "grafik-RP-APBD") {
 			$output = "<i class='fa fa-bar-chart'></i> Grafik APBDes TA. " . $thn . ", ";
 			return $output;
-		}
-		elseif ($type == "lap-RP-APBD-Bidang-manual")
-		{
+		} elseif ($type == "lap-RP-APBD-Bidang-manual") {
 			$output = "<i class='fa fa-table'></i> Tabel Laporan APBDes TA. " . $thn . ", ";
 			return $output;
-		}
-		elseif ($type == "grafik-RP-APBD-manual")
-		{
+		} elseif ($type == "grafik-RP-APBD-manual") {
 			$output = "<i class='fa fa-bar-chart'></i> Grafik APBDes TA. " . $thn . ", ";
 			return $output;
-		}
-		elseif ($type == "penerima_bantuan_penduduk_grafik")
-		{
+		} elseif ($type == "penerima_bantuan_penduduk_grafik") {
 			$output = "<i class='fa fa-bar-chart'></i> Penerima Bantuan (Penduduk)";
 			return $output;
-		}
-		elseif ($type == "penerima_bantuan_penduduk_daftar")
-		{
+		} elseif ($type == "penerima_bantuan_penduduk_daftar") {
 			$output = "<i class='fa fa-table'></i> Penerima Bantuan (Penduduk)";
 			return $output;
-		}
-		elseif ($type == "penerima_bantuan_keluarga_grafik")
-		{
+		} elseif ($type == "penerima_bantuan_keluarga_grafik") {
 			$output = "<i class='fa fa-bar-chart'></i> Penerima Bantuan (Keluarga)";
 			return $output;
-		}
-		elseif ($type == "penerima_bantuan_keluarga_daftar")
-		{
+		} elseif ($type == "penerima_bantuan_keluarga_daftar") {
 			$output = "<i class='fa fa-table'></i> Penerima Bantuan (Keluarga)";
 			return $output;
-		}
-    elseif ($type == "sotk_w_bpd")
-		{
+		} elseif ($type == "sotk_w_bpd") {
 			$output = "<i class='fa fa-table'></i> Struktur Organisasi (BPD)";
 			return $output;
-		}
-    elseif ($type == "sotk_wo_bpd")
-		{
+		} elseif ($type == "sotk_wo_bpd") {
 			$output = "<i class='fa fa-table'></i> Struktur Organisasi";
 			return $output;
 		}
 	}
-
 }
-?>

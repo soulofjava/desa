@@ -1,37 +1,38 @@
 <?php
 
 define("KOLOM_IMPOR_SIAK", serialize(array(
-  "no_kk" => "1",
-  "nik" => "2",
-  "nama"  => "3",
-  "status_dasar" => "4",
-  "tempatlahir" => "5",
-  "tanggallahir" => "6",
-  "sex"  => "7",
-  "ayah_nik" => "8",
-  "nama_ayah" => "9",
-  "ibu_nik"  => "10",
-  "nama_ibu" => "11",
-  "status_kawin" => "12",
-  "kk_level" => "13",
-  "agama_id" => "14",
-  "alamat"  => "17",
-  "rw" => "18",
-  "rt" => "19",
-  "pendidikan_kk_id"  => "20",
-  "pekerjaan_id" => "21",
-  "golongan_darah_id" => "23",
-  "cacat_id" => "24",
-  "dokumen_pasport" => "28",
-  "akta_lahir" => "29",
-  "akta_perkawinan" => "30",
-  "tanggalperkawinan" => "31",
-  "akta_perceraian" => "32",
-  "tanggalperceraian" => "33",
-  "tgl_entri" => "37"
+	"no_kk" => "1",
+	"nik" => "2",
+	"nama"  => "3",
+	"status_dasar" => "4",
+	"tempatlahir" => "5",
+	"tanggallahir" => "6",
+	"sex"  => "7",
+	"ayah_nik" => "8",
+	"nama_ayah" => "9",
+	"ibu_nik"  => "10",
+	"nama_ibu" => "11",
+	"status_kawin" => "12",
+	"kk_level" => "13",
+	"agama_id" => "14",
+	"alamat"  => "17",
+	"rw" => "18",
+	"rt" => "19",
+	"pendidikan_kk_id"  => "20",
+	"pekerjaan_id" => "21",
+	"golongan_darah_id" => "23",
+	"cacat_id" => "24",
+	"dokumen_pasport" => "28",
+	"akta_lahir" => "29",
+	"akta_perkawinan" => "30",
+	"tanggalperkawinan" => "31",
+	"akta_perceraian" => "32",
+	"tanggalperceraian" => "33",
+	"tgl_entri" => "37"
 )));
 
-class Siak_model extends Import_model {
+class Siak_model extends Import_model
+{
 
 	public function __construct()
 	{
@@ -48,19 +49,15 @@ class Siak_model extends Import_model {
 
 	private function cari_baris_pertama($data, $baris)
 	{
-		if ($baris <=1 )
+		if ($baris <= 1)
 			return 0;
 
 		$baris_pertama = 1;
-		for ($i=2; $i<=$baris; $i++)
-		{
+		for ($i = 2; $i <= $baris; $i++) {
 			// Baris dengan tiga kolom pertama kosong menandakan baris tanpa data
-			if ($data->val($i, 1) == '' AND $data->val($i, 2) == '' AND $data->val($i, 3) == '')
-			{
+			if ($data->val($i, 1) == '' and $data->val($i, 2) == '' and $data->val($i, 3) == '') {
 				continue;
-			}
-			else
-			{
+			} else {
 				// Ketemu baris data pertama
 				$baris_pertama = $i;
 				break;
@@ -97,29 +94,27 @@ class Siak_model extends Import_model {
 
 		$isi_baris['nik'] = buang_nondigit($data->val($i, $kolom_impor['nik']));
 		$isi_baris['sex'] = $this->get_konversi_kode($this->kode_sex, trim($data->val($i, $kolom_impor['sex'])));
-		$isi_baris['tempatlahir']= trim($data->val($i, $kolom_impor['tempatlahir']));
+		$isi_baris['tempatlahir'] = trim($data->val($i, $kolom_impor['tempatlahir']));
 
 		$isi_baris['tanggallahir'] = $this->format_tanggal($data->val($i, $kolom_impor['tanggallahir']));
 
-		$isi_baris['agama_id']= $this->get_konversi_kode($this->kode_agama, trim($data->val($i, $kolom_impor['agama_id'])));
-		$isi_baris['pendidikan_kk_id']= $this->get_konversi_kode($this->kode_pendidikan, $this->normalkan_data(trim($data->val($i, $kolom_impor['pendidikan_kk_id']))));
+		$isi_baris['agama_id'] = $this->get_konversi_kode($this->kode_agama, trim($data->val($i, $kolom_impor['agama_id'])));
+		$isi_baris['pendidikan_kk_id'] = $this->get_konversi_kode($this->kode_pendidikan, $this->normalkan_data(trim($data->val($i, $kolom_impor['pendidikan_kk_id']))));
 
-		$isi_baris['pekerjaan_id']= $this->get_konversi_kode($this->kode_pekerjaan, $this->normalkan_data(trim($data->val($i, $kolom_impor['pekerjaan_id']))));
-		$isi_baris['status_kawin']= $this->get_konversi_kode($this->kode_status, trim($data->val($i, $kolom_impor['status_kawin'])));
-		$isi_baris['kk_level']= $this->get_konversi_kode($this->kode_hubungan, trim($data->val($i, $kolom_impor['kk_level'])));
+		$isi_baris['pekerjaan_id'] = $this->get_konversi_kode($this->kode_pekerjaan, $this->normalkan_data(trim($data->val($i, $kolom_impor['pekerjaan_id']))));
+		$isi_baris['status_kawin'] = $this->get_konversi_kode($this->kode_status, trim($data->val($i, $kolom_impor['status_kawin'])));
+		$isi_baris['kk_level'] = $this->get_konversi_kode($this->kode_hubungan, trim($data->val($i, $kolom_impor['kk_level'])));
 		// TODO: belum ada kode_warganegara
-		$isi_baris['warganegara_id']= trim($data->val($i, $kolom_impor['warganegara_id']));
+		$isi_baris['warganegara_id'] = trim($data->val($i, $kolom_impor['warganegara_id']));
 
-		$nama_ayah = trim($data->val($i,$kolom_impor['nama_ayah']));
-		if ($nama_ayah == "")
-		{
+		$nama_ayah = trim($data->val($i, $kolom_impor['nama_ayah']));
+		if ($nama_ayah == "") {
 			$nama_ayah = "-";
 		}
 		$isi_baris['nama_ayah'] = $nama_ayah;
 
-		$nama_ibu = trim($data->val($i,$kolom_impor['nama_ibu']));
-		if ($nama_ibu == "")
-		{
+		$nama_ibu = trim($data->val($i, $kolom_impor['nama_ibu']));
+		if ($nama_ibu == "") {
 			$nama_ibu = "-";
 		}
 		$isi_baris['nama_ibu'] = $nama_ibu;
@@ -149,7 +144,7 @@ class Siak_model extends Import_model {
 		return $str;
 	}
 
-	/**
+	/*
 	 * Proses impor data bip
 	 *
 	 * @access	public
@@ -164,8 +159,7 @@ class Siak_model extends Import_model {
 	{
 		// membaca jumlah baris dari data excel
 		$baris = $data->rowcount($sheet_index = 0);
-		if ($this->cari_baris_pertama($data, $baris) <= 1)
-		{
+		if ($this->cari_baris_pertama($data, $baris) <= 1) {
 			$_SESSION['error_msg'] .= " -> Tidak ada data";
 			$_SESSION['success'] = -1;
 			return;
@@ -177,34 +171,28 @@ class Siak_model extends Import_model {
 		$total_penduduk = 0;
 
 		// Import data excel mulai baris ke-2 (karena baris pertama adalah nama kolom)
-		for ($i=2; $i<=$baris; $i++)
-		{
+		for ($i = 2; $i <= $baris; $i++) {
 			// Baris dengan tiga kolom pertama kosong menandakan baris tanpa data
-			if ($data->val($i, 1) == '' AND $data->val($i, 2) == '' AND $data->val($i, 3) == '')
-			{
+			if ($data->val($i, 1) == '' and $data->val($i, 2) == '' and $data->val($i, 3) == '') {
 				continue;
 			}
 
 			$isi_baris = $this->get_isi_baris($data, $i);
 			$error_validasi = $this->data_import_valid($isi_baris);
-			if (empty($error_validasi))
-			{
+			if (empty($error_validasi)) {
 				$this->tulis_tweb_wil_clusterdesa($isi_baris);
 				if ($this->tulis_tweb_keluarga($isi_baris))
 					$total_keluarga++;
 				$penduduk_baru = $this->tulis_tweb_penduduk($isi_baris);
-				if ($penduduk_baru)
-				{
+				if ($penduduk_baru) {
 					$total_penduduk++;
 					// Tulis log kalau status dasar MATI, HILANG atau PINDAH
 					if (in_array($isi_baris['status_dasar'], array('2', '3', '4')))
 						$this->tulis_log_penduduk($isi_baris, $penduduk_baru);
 				}
-			}
-			else
-			{
+			} else {
 				$gagal_penduduk++;
-				$baris_gagal .= $i." (".$error_validasi.")<br>";
+				$baris_gagal .= $i . " (" . $error_validasi . ")<br>";
 			}
 		}
 
@@ -228,10 +216,9 @@ class Siak_model extends Import_model {
 			'tgl_lapor' => $data['tgl_entri'],
 			'created_by' => $this->session->user,
 			'kode_peristiwa' => $data['status_dasar'],
-			'catatan' => 'Status impor data SIAK: '.$data['status_dasar_orig']
+			'catatan' => 'Status impor data SIAK: ' . $data['status_dasar_orig'],
+			'desa_id' => $this->config->item('desa_id')
 		];
 		$this->penduduk_model->tulis_log_penduduk_data($log);
 	}
-
 }
-?>
