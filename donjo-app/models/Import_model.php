@@ -293,7 +293,7 @@ class Import_model extends CI_Model
 			$isi_baris['id_cluster'] = $res['id'];
 		} else {
 			$query = "INSERT INTO tweb_wil_clusterdesa(rt,rw,dusun) VALUES ('" . $isi_baris['rt'] . "', '" . $isi_baris['rw'] . "', '" . $isi_baris['dusun'] . "')";
-			$hasil = $this->db->query($query);
+			$hasil = $this->db->query($query + ['desa_id' => $this->config->item('desa_id')]);
 			$isi_baris['id_cluster'] = $this->db->insert_id();
 		}
 	}
