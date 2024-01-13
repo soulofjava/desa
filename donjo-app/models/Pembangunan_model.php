@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -71,17 +71,15 @@ class Pembangunan_model extends CI_Model
 			'(CASE WHEN p.id_lokasi IS NOT NULL THEN CONCAT("RT ", w.rt, " / RW ", w.rw, " - ", w.dusun) ELSE p.lokasi END) AS alamat',
 			'(CASE WHEN MAX(d.persentase) IS NOT NULL THEN MAX(d.persentase) ELSE CONCAT("belum ada progres") END) AS max_persentase',
 		])
-		->from("{$this->table} p")
-		->join('pembangunan_ref_dokumentasi d', 'd.id_pembangunan = p.id', 'left')
-		->join('tweb_wil_clusterdesa w', 'p.id_lokasi = w.id', 'left')
-		->group_by('p.id');
+			->from("{$this->table} p")
+			->join('pembangunan_ref_dokumentasi d', 'd.id_pembangunan = p.id', 'left')
+			->join('tweb_wil_clusterdesa w', 'p.id_lokasi = w.id', 'left')
+			->where('desa_id', $this->config->item('desa_id'))
+			->group_by('p.id');
 
-		if (empty($search))
-		{
+		if (empty($search)) {
 			$search = $builder;
-		}
-		else
-		{
+		} else {
 			$search = $builder->group_start()
 				->like('p.sumber_dana', $search)
 				->or_like('p.judul', $search)
@@ -108,6 +106,7 @@ class Pembangunan_model extends CI_Model
 			'(CASE WHEN p.id_lokasi IS NOT NULL THEN CONCAT("RT ", w.rt, " / RW ", w.rw, " - ", w.dusun) ELSE p.lokasi END) AS alamat',
 		])
 			->from('pembangunan p')
+			->where('desa_id', $this->config->item('desa_id'))
 			->where('p.status = 1')
 			->join('tweb_wil_clusterdesa w', 'p.id_lokasi = w.id', 'left')
 			->get()->result();
@@ -137,13 +136,13 @@ class Pembangunan_model extends CI_Model
 		unset($data['file_foto']);
 		unset($data['old_foto']);
 
-		$outp = $this->db->insert('pembangunan', $data);
+		$outp = $this->db->insert('pembangunan', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		if ($outp) $_SESSION['success'] = 1;
 		else $_SESSION['success'] = -1;
 	}
 
-	public function update($id=0)
+	public function update($id = 0)
 	{
 		$post = $this->input->post();
 
@@ -182,14 +181,11 @@ class Pembangunan_model extends CI_Model
 		);
 		// Adakah berkas yang disertakan?
 		$adaBerkas = !empty($_FILES[$jenis]['name']);
-		if ($adaBerkas !== TRUE)
-		{
+		if ($adaBerkas !== TRUE) {
 			return NULL;
 		}
 		// Tes tidak berisi script PHP
-		if (isPHP($_FILES['logo']['tmp_name'], $_FILES[$jenis]['name']))
-
-		{
+		if (isPHP($_FILES['logo']['tmp_name'], $_FILES[$jenis]['name'])) {
 			$_SESSION['error_msg'] .= " -> Jenis file ini tidak diperbolehkan ";
 			$_SESSION['success'] = -1;
 			redirect('identitas_desa');
@@ -199,23 +195,21 @@ class Pembangunan_model extends CI_Model
 		// Inisialisasi library 'upload'
 		$this->upload->initialize($this->uploadConfig);
 		// Upload sukses
-		if ($this->upload->do_upload($jenis))
-		{
+		if ($this->upload->do_upload($jenis)) {
 			$uploadData = $this->upload->data();
 			// Buat nama file unik agar url file susah ditebak dari browser
 			$namaFileUnik = tambahSuffixUniqueKeNamaFile($uploadData['file_name']);
 			// Ganti nama file asli dengan nama unik untuk mencegah akses langsung dari browser
 			$fileRenamed = rename(
-				$this->uploadConfig['upload_path'].$uploadData['file_name'],
-				$this->uploadConfig['upload_path'].$namaFileUnik
+				$this->uploadConfig['upload_path'] . $uploadData['file_name'],
+				$this->uploadConfig['upload_path'] . $namaFileUnik
 			);
 			// Ganti nama di array upload jika file berhasil di-rename --
 			// jika rename gagal, fallback ke nama asli
 			$uploadData['file_name'] = $fileRenamed ? $namaFileUnik : $uploadData['file_name'];
 		}
 		// Upload gagal
-		else
-		{
+		else {
 			$_SESSION['success'] = -1;
 			$_SESSION['error_msg'] = $this->upload->display_errors(NULL, NULL);
 		}
@@ -242,11 +236,12 @@ class Pembangunan_model extends CI_Model
 			'p.*',
 			'(CASE WHEN p.id_lokasi IS NOT NULL THEN CONCAT("RT ", w.rt, " / RW ", w.rw, " - ", w.dusun) ELSE p.lokasi END) AS alamat',
 		])
-		->from("{$this->table} p")
-		->join('tweb_wil_clusterdesa w', 'p.id_lokasi = w.id', 'left')
-		->where('p.id', $id)
-		->get()
-		->row();
+			->from("{$this->table} p")
+			->join('tweb_wil_clusterdesa w', 'p.id_lokasi = w.id', 'left')
+			->where('desa_id', $this->config->item('desa_id'))
+			->where('p.id', $id)
+			->get()
+			->row();
 	}
 
 	public function list_filter_tahun()
@@ -262,6 +257,7 @@ class Pembangunan_model extends CI_Model
 	{
 		return $this->db->select(['id', 'rt', 'rw', 'dusun'])
 			->where('rt >', 0)
+			->where('desa_id', $this->config->item('desa_id'))
 			->order_by('dusun')
 			->get('tweb_wil_clusterdesa')
 			->result_array();

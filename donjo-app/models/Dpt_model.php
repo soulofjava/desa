@@ -130,7 +130,7 @@
 		LEFT JOIN tweb_penduduk_hubungan hub ON u.kk_level = hub.id
 		LEFT JOIN tweb_sakit_menahun j ON u.sakit_menahun_id = j.id
 		LEFT JOIN log_penduduk log ON u.id = log.id_pend
-		WHERE 1 AND desa_id = " . $this->config->item('desa_id');
+		WHERE 1 AND u.desa_id = " . $this->config->item('desa_id');
 
 		$sql .= $this->syarat_dpt_sql();
 		$sql .= $this->search_sql();

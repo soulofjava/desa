@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -45,7 +45,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @link 	https://github.com/OpenSID/OpenSID
  */
 
-	class Penduduk_log_model extends MY_Model {
+class Penduduk_log_model extends MY_Model
+{
 
 	public function __construct()
 	{
@@ -64,8 +65,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		$log = $this->db
 			->select("s.nama as status, s.id as status_id, date_format(tgl_peristiwa, '%d-%m-%Y') as tgl_peristiwa, kode_peristiwa, ref_pindah, catatan, date_format(tgl_lapor, '%d-%m-%Y') as tgl_lapor, alamat_tujuan, meninggal_di, p.alamat_sebelumnya")
 			->where('l.id', $id_log)
-			->join('tweb_penduduk p','l.id_pend = p.id', 'left')
-			->join('ref_peristiwa s','s.id = l.kode_peristiwa', 'left')
+			->where('desa_id', $this->config->item('desa_id'))
+			->join('tweb_penduduk p', 'l.id_pend = p.id', 'left')
+			->join('ref_peristiwa s', 's.id = l.kode_peristiwa', 'left')
 			->get('log_penduduk l')->row_array();
 		if (empty($log['tgl_peristiwa'])) $log['tgl_peristiwa'] = date("d-m-Y");
 		return $log;
@@ -85,17 +87,16 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			$data['alamat_tujuan'] = htmlentities($this->input->post('alamat_tujuan'));
 		if ($this->input->post('meninggal_di'))
 			$data['meninggal_di'] = htmlentities($this->input->post('meninggal_di'));
-		if ($this->input->post('alamat_sebelumnya'))
-		{
+		if ($this->input->post('alamat_sebelumnya')) {
 			$penduduk['alamat_sebelumnya'] = htmlentities($this->input->post('alamat_sebelumnya'));
-			$get_pendudukId = $this->db->where('id', $id_log)->get('log_penduduk')->row()->id_pend;
+			$get_pendudukId = $this->db->where('id', $id_log)->where('desa_id', $this->config->item('desa_id'))->get('log_penduduk')->row()->id_pend;
 			$this->db->where('id', $get_pendudukId)->update('tweb_penduduk', $penduduk);
 		}
 		$data['tgl_peristiwa'] = rev_tgl($this->input->post('tgl_peristiwa'));
 		$data['tgl_lapor'] = rev_tgl($this->input->post('tgl_lapor'));
 		$data['updated_at'] = date('Y-m-d H:i:s');
 		$data['updated_by'] = $this->session->user;
-		if (! $this->db->where('id', $id_log)->update('log_penduduk', $data))
+		if (!$this->db->where('id', $id_log)->update('log_penduduk', $data))
 			$_SESSION['success'] = -1;
 		else
 			$_SESSION['success'] = 1;
@@ -109,18 +110,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	 */
 	public function kembalikan_status($id_log)
 	{
-		$log = $this->db->where('id', $id_log)->get('log_penduduk')->row();
+		$log = $this->db->where('id', $id_log)->where('desa_id', $this->config->item('desa_id'))->get('log_penduduk')->row();
 		// Kembalikan status selain masuk dan lahir
-		if ($log->kode_peristiwa != 5 && $log->kode_peristiwa != 1 )
-		{
+		if ($log->kode_peristiwa != 5 && $log->kode_peristiwa != 1) {
 			$data['status_dasar'] = 1; // status dasar hidup
 			$data['updated_at'] = date('Y-m-d H:i:s');
 			$data['updated_by'] = $this->session->user;
-			if (!$this->db->where('id',$log->id_pend)->update('tweb_penduduk', $data))
-				$_SESSION['success'] = - 1;
+			if (!$this->db->where('id', $log->id_pend)->update('tweb_penduduk', $data))
+				$_SESSION['success'] = -1;
 			// Hapus log penduduk
 			if (!$this->db->where('id', $id_log)->delete('log_penduduk'))
-				$_SESSION['success'] = - 1;
+				$_SESSION['success'] = -1;
 		}
 	}
 
@@ -134,78 +134,69 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	{
 		unset($_SESSION['success']);
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
+		foreach ($id_cb as $id) {
 			$this->kembalikan_status($id);
 		}
 	}
 
 	private function search_sql()
 	{
-		if ($cari = $this->session->cari)
-		{
+		if ($cari = $this->session->cari) {
 			$kw = $this->db->escape_like_str($cari);
 			$this->db
 				->group_start()
-					->or_like('u.nama', $kw, 'both', FALSE)
-					->or_like('u.nik', $kw, 'both', FALSE)
+				->or_like('u.nama', $kw, 'both', FALSE)
+				->or_like('u.nik', $kw, 'both', FALSE)
 				->group_end();
 		}
 	}
 
 	private function sex_sql()
 	{
-		if ($kf = $this->session->sex)
-		{
-			$this->db->where('u.sex', $kf);
+		if ($kf = $this->session->sex) {
+			$this->db->where('u.sex', $kf)->where('u.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function agama_sql()
 	{
-		if ($kf = $this->session->agama)
-		{
-			$this->db->where('u.agama_id', $kf);
+		if ($kf = $this->session->agama) {
+			$this->db->where('u.agama_id', $kf)->where('u.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function dusun_sql()
 	{
-		if ($kf = $this->session->dusun)
-		{
-			$this->db->where('a.dusun', $kf);
+		if ($kf = $this->session->dusun) {
+			$this->db->where('a.dusun', $kf)->where('a.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function rw_sql()
 	{
-		if ($kf = $this->session->rw)
-		{
-			$this->db->where('a.rw', $kf);
+		if ($kf = $this->session->rw) {
+			$this->db->where('a.rw', $kf)->where('a.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function rt_sql()
 	{
-		if ($kf = $this->session->rt)
-		{
-			$this->db->where('a.rt', $kf);
+		if ($kf = $this->session->rt) {
+			$this->db->where('a.rt', $kf)->where('a.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function kode_peristiwa()
 	{
-		if ($kf = $this->session->kode_peristiwa)
-		{
-			$this->db->where_in('log.kode_peristiwa', $kf);
+		if ($kf = $this->session->kode_peristiwa) {
+			$this->db->where_in('log.kode_peristiwa', $kf)->where('log.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
 	private function status_penduduk()
 	{
-		if ($kf = $this->session->status_penduduk)
-		{
-			$this->db->where('u.status', $kf);
+		if ($kf = $this->session->status_penduduk) {
+			$this->db->where('u.status', $kf)->where('u.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
@@ -214,15 +205,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		$kt = $this->session->filter_tahun;
 		$kb = $this->session->filter_bulan;
 
-		if ($kt) $this->db->where("YEAR(log.tgl_lapor)", $kt);
-		if ($kb) $this->db->where("MONTH(log.tgl_lapor)", $kb);
+		if ($kt) $this->db->where("YEAR(log.tgl_lapor)", $kt)->where('log.desa_id', $this->config->item('desa_id'));
+		if ($kb) $this->db->where("MONTH(log.tgl_lapor)", $kb)->where('log.desa_id', $this->config->item('desa_id'));
 	}
 
 	private function tgl_lengkap()
 	{
-		if ($kf = $this->session->tgl_lengkap)
-		{
-			$this->db->where("log.tgl_lapor >=",$kf);
+		if ($kf = $this->session->tgl_lengkap) {
+			$this->db->where("log.tgl_lapor >=", $kf)->where('log.desa_id', $this->config->item('desa_id'));
 		}
 	}
 
@@ -235,6 +225,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		$list_tahun = $this->db
 			->select('MIN(YEAR(tgl_lapor)) as tahun')
 			->from('log_penduduk')
+			->where('desa_id', $this->config->item('desa_id'))
 			->order_by('tahun DESC')
 			->limit(5)
 			->get()->row()->tahun;
@@ -246,7 +237,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		return $data_tahun;
 	}
 
-	public function paging($p=1, $o=0)
+	public function paging($p = 1, $o = 0)
 	{
 		$this->db->select('COUNT(log.id) AS jml');
 		$this->list_data_sql();
@@ -269,6 +260,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			->from('log_penduduk log')
 			->join('tweb_penduduk u', 'u.id = log.id_pend', 'left')
 			->join('log_hapus_penduduk h', 'h.id_pend = log.id_pend', 'left')
+			->where('log.desa_id', $this->config->item('desa_id'))
 			->where('u.created_at IS NULL')
 			->where('h.deleted_at > log.created_at');
 
@@ -294,7 +286,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			->join('tweb_penduduk_agama g', 'u.agama_id = g.id', 'left')
 			->join('tweb_penduduk_warganegara v', 'v.id = u.warganegara_id', 'left')
 			->join('ref_pindah rp', 'rp.id = log.ref_pindah', 'left')
-			->join('ref_peristiwa ra', 'ra.id = log.kode_peristiwa', 'left');
+			->join('ref_peristiwa ra', 'ra.id = log.kode_peristiwa', 'left')
+			->where('log.desa_id', $this->config->item('desa_id'));
 
 		$this->kode_peristiwa();
 		$this->search_sql();
@@ -315,24 +308,45 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			->select('u.id, u.nik, u.tempatlahir, u.tanggallahir, u.id_kk, u.nama, u.foto, a.dusun, a.rw, a.rt, d.alamat, log.id as id_log, log.no_kk AS no_kk, log.catatan as catatan, log.nama_kk as nama_kk, v.nama AS warganegara, u.created_at, log.meninggal_di, u.alamat_sebelumnya, log.alamat_tujuan,')
 			->select('(CASE when log.kode_peristiwa = 3 then rp.nama else ra.nama end) as nama_peristiwa')
 			->select("(SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(log.tgl_peristiwa)-TO_DAYS(u.tanggallahir)), '%Y')+0) AS umur_pada_peristiwa")
-			->select('x.nama AS sex, g.nama AS agama, log.tgl_lapor, log.tgl_peristiwa, log.kode_peristiwa, h.nik as nik_hapus');
+			->select('x.nama AS sex, g.nama AS agama, log.tgl_lapor, log.tgl_peristiwa, log.kode_peristiwa, h.nik as nik_hapus')->where('u.desa_id', $this->config->item('desa_id'));
 
 		$this->list_data_sql();
 
-		switch ($o)
-		{
-			case 1: $this->db->order_by('u.nik', 'ASC'); break;
-			case 2: $this->db->order_by('u.nik', 'DESC'); break;
-			case 3: $this->db->order_by('u.nama', 'ASC'); break;
-			case 4: $this->db->order_by('u.nama', 'DESC'); break;
-			case 5: $this->db->order_by('d.no_kk', 'ASC'); break;
-			case 6: $this->db->order_by('d.no_kk', 'DESC'); break;
-			case 7: $this->db->order_by('umur_pada_peristiwa', 'ASC'); break;
-			case 8: $this->db->order_by('umur_pada_peristiwa', 'DESC'); break;
-			// Untuk Log Penduduk
-			case 9:  $this->db->order_by('log.tgl_peristiwa', 'ASC'); break;
-			case 10: $this->db->order_by('log.tgl_peristiwa', 'DESC'); break;
-			default:$this->db->order_by('log.tgl_lapor', 'DESC'); break;
+		switch ($o) {
+			case 1:
+				$this->db->order_by('u.nik', 'ASC');
+				break;
+			case 2:
+				$this->db->order_by('u.nik', 'DESC');
+				break;
+			case 3:
+				$this->db->order_by('u.nama', 'ASC');
+				break;
+			case 4:
+				$this->db->order_by('u.nama', 'DESC');
+				break;
+			case 5:
+				$this->db->order_by('d.no_kk', 'ASC');
+				break;
+			case 6:
+				$this->db->order_by('d.no_kk', 'DESC');
+				break;
+			case 7:
+				$this->db->order_by('umur_pada_peristiwa', 'ASC');
+				break;
+			case 8:
+				$this->db->order_by('umur_pada_peristiwa', 'DESC');
+				break;
+				// Untuk Log Penduduk
+			case 9:
+				$this->db->order_by('log.tgl_peristiwa', 'ASC');
+				break;
+			case 10:
+				$this->db->order_by('log.tgl_peristiwa', 'DESC');
+				break;
+			default:
+				$this->db->order_by('log.tgl_lapor', 'DESC');
+				break;
 		}
 
 		//Paging SQL
@@ -341,15 +355,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 		//Formating Output
 		$j = $offset;
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			// Ubah alamat penduduk lepas
-			if (!$data[$i]['id_kk'] OR $data[$i]['id_kk'] == 0)
-			{
+			if (!$data[$i]['id_kk'] or $data[$i]['id_kk'] == 0) {
 				// Ambil alamat penduduk
 				$query = $this->db->select('p.id_cluster, p.alamat_sekarang, c.dusun, c.rw, c.rt')
 					->from('tweb_penduduk p')
 					->join('tweb_wil_clusterdesa c', 'p.id_cluster = c.id', 'left')
+					->where('desa_id', $this->config->item('desa_id'))
 					->where('p.id', $data[$i]['id']);
 				$penduduk = $query->get()->row_array();
 				$data[$i]['alamat'] = $penduduk['alamat_sekarang'];
@@ -369,8 +382,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		$thn = $this->db
 			->select('min(date_format(tgl_lapor, "%Y")) as thn')
 			->from('log_penduduk')
+			->where('desa_id', $this->config->item('desa_id'))
 			->get()->row()->thn;
 		return $thn;
 	}
-
 }

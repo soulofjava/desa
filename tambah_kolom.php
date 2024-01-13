@@ -20,6 +20,12 @@ if ($result) {
         // Menambahkan kolom desa_id dengan tipe UNSIGNED BIGINT ke setiap tabel
         $addColumnQuery = "ALTER TABLE $tableName ADD COLUMN desa_id BIGINT UNSIGNED";
         mysqli_query($conn, $addColumnQuery);
+
+        // Menetapkan nilai default 1 pada kolom desa_id
+        $updateQuery = "UPDATE $tableName SET desa_id = 1";
+        mysqli_query($conn, $updateQuery);
+
+        echo "Kolom 'desa_id' berhasil ditambahkan dan nilai defaultnya diatur pada tabel '$tableName'.<br>";
     }
 } else {
     echo "Error: " . mysqli_error($conn);

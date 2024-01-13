@@ -42,7 +42,8 @@
  * @link  https://github.com/OpenSID/OpenSID
  */
 
-class Config_model extends CI_Model {
+class Config_model extends CI_Model
+{
 
 	public function __construct()
 	{
@@ -51,7 +52,7 @@ class Config_model extends CI_Model {
 
 	public function get_data()
 	{
-		$query = $this->db->select('*')->limit(1)->get('config')->row_array();
+		$query = $this->db->select('*')->where('desa_id', $this->config->item('desa_id'))->limit(1)->get('config')->row_array();
 		return $query;
 	}
 
@@ -68,21 +69,18 @@ class Config_model extends CI_Model {
 		unset($data['old_kantor_desa']);
 		$data['logo'] = $this->upload_gambar_desa('logo');
 		$data['kantor_desa'] = $this->upload_gambar_desa('kantor_desa');
-		if (!empty($data['logo']))
-		{
+		if (!empty($data['logo'])) {
 			// Ada logo yang berhasil diunggah --> simpan ukuran 100 x 100
 			$tipe_file = TipeFile($_FILES['logo']);
-			$dimensi = array("width"=>100, "height"=>100);
-			resizeImage(LOKASI_LOGO_DESA.$data['logo'], $tipe_file, $dimensi);
-			resizeImage(LOKASI_LOGO_DESA.$data['logo'], $tipe_file, array("width"=>16, "height"=>16), LOKASI_LOGO_DESA.'favicon.ico');
-		}
-		else
-		{
+			$dimensi = array("width" => 100, "height" => 100);
+			resizeImage(LOKASI_LOGO_DESA . $data['logo'], $tipe_file, $dimensi);
+			resizeImage(LOKASI_LOGO_DESA . $data['logo'], $tipe_file, array("width" => 16, "height" => 16), LOKASI_LOGO_DESA . 'favicon.ico');
+		} else {
 			unset($data['logo']);
 		}
 		unset($data['file_logo']);
 		unset($data['file_kantor_desa']);
-		$outp = $this->db->insert('config', $data);
+		$outp = $this->db->insert('config', $data + ['desa_id' => $this->config->item('desa_id')]);
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
@@ -112,7 +110,7 @@ class Config_model extends CI_Model {
 		return $data;
 	}
 
-	public function update($id=0)
+	public function update($id = 0)
 	{
 		$_SESSION['success'] = 1;
 		$_SESSION['error_msg'] = '';
@@ -121,18 +119,15 @@ class Config_model extends CI_Model {
 		$data['logo'] = $this->upload_gambar_desa('logo');
 		$data['kantor_desa'] = $this->upload_gambar_desa('kantor_desa');
 
-		if (!empty($data['logo']))
-		{
+		if (!empty($data['logo'])) {
 			// Ada logo yang berhasil diunggah --> simpan ukuran 100 x 100
 			$tipe_file = TipeFile($_FILES['logo']);
-			$dimensi = array("width"=>100, "height"=>100);
-			resizeImage(LOKASI_LOGO_DESA.$data['logo'], $tipe_file, $dimensi);
-			resizeImage(LOKASI_LOGO_DESA.$data['logo'], $tipe_file, array("width"=>16, "height"=>16), LOKASI_LOGO_DESA.'favicon.ico');
+			$dimensi = array("width" => 100, "height" => 100);
+			resizeImage(LOKASI_LOGO_DESA . $data['logo'], $tipe_file, $dimensi);
+			resizeImage(LOKASI_LOGO_DESA . $data['logo'], $tipe_file, array("width" => 16, "height" => 16), LOKASI_LOGO_DESA . 'favicon.ico');
 			// Hapus berkas logo lama
-		  if (!empty($data['old_logo'])) unlink(LOKASI_LOGO_DESA.$data['old_logo']);
-		}
-		else
-		{
+			if (!empty($data['old_logo'])) unlink(LOKASI_LOGO_DESA . $data['old_logo']);
+		} else {
 			unset($data['logo']);
 		}
 
@@ -142,11 +137,11 @@ class Config_model extends CI_Model {
 		unset($data['old_logo']);
 		unset($data['file_kantor_desa']);
 		unset($data['old_kantor_desa']);
-		$this->db->where('id',$id)->update('config', $data);
+		$this->db->where('id', $id)->update('config', $data);
 
 		$pamong['pamong_nama'] = $data['nama_kepala_desa'];
 		$pamong['pamong_nip'] = $data['nip_kepala_desa'];
-		$this->db->where('pamong_id','707');
+		$this->db->where('pamong_id', '707');
 		$outp = $this->db->update('tweb_desa_pamong', $pamong);
 
 		if (!$outp) $_SESSION['success'] = -1;
@@ -167,13 +162,11 @@ class Config_model extends CI_Model {
 		);
 		// Adakah berkas yang disertakan?
 		$adaBerkas = !empty($_FILES[$jenis]['name']);
-		if ($adaBerkas !== TRUE)
-		{
+		if ($adaBerkas !== TRUE) {
 			return NULL;
 		}
 		// Tes tidak berisi script PHP
-		if (isPHP($_FILES['logo']['tmp_name'], $_FILES[$jeniss]['name']))
-		{
+		if (isPHP($_FILES['logo']['tmp_name'], $_FILES[$jeniss]['name'])) {
 			$_SESSION['error_msg'] .= " -> Jenis file ini tidak diperbolehkan ";
 			$_SESSION['success'] = -1;
 			redirect('identitas_desa');
@@ -183,23 +176,21 @@ class Config_model extends CI_Model {
 		// Inisialisasi library 'upload'
 		$this->upload->initialize($this->uploadConfig);
 		// Upload sukses
-		if ($this->upload->do_upload($jenis))
-		{
+		if ($this->upload->do_upload($jenis)) {
 			$uploadData = $this->upload->data();
 			// Buat nama file unik agar url file susah ditebak dari browser
 			$namaFileUnik = tambahSuffixUniqueKeNamaFile($uploadData['file_name']);
 			// Ganti nama file asli dengan nama unik untuk mencegah akses langsung dari browser
 			$fileRenamed = rename(
-				$this->uploadConfig['upload_path'].$uploadData['file_name'],
-				$this->uploadConfig['upload_path'].$namaFileUnik
+				$this->uploadConfig['upload_path'] . $uploadData['file_name'],
+				$this->uploadConfig['upload_path'] . $namaFileUnik
 			);
 			// Ganti nama di array upload jika file berhasil di-rename --
 			// jika rename gagal, fallback ke nama asli
 			$uploadData['file_name'] = $fileRenamed ? $namaFileUnik : $uploadData['file_name'];
 		}
 		// Upload gagal
-		else
-		{
+		else {
 			$_SESSION['success'] = -1;
 			$_SESSION['error_msg'] = $this->upload->display_errors(NULL, NULL);
 		}
@@ -225,5 +216,4 @@ class Config_model extends CI_Model {
 
 		status_sukses($outp); //Tampilkan Pesan
 	}
-
 }

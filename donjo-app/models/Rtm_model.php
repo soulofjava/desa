@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -43,7 +43,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @link 	https://github.com/OpenSID/OpenSID
  */
 
-class Rtm_model extends CI_Model {
+class Rtm_model extends CI_Model
+{
 
 	public function __construct()
 	{
@@ -54,8 +55,7 @@ class Rtm_model extends CI_Model {
 	// Digunakan dimana ????
 	private function jenis_sql()
 	{
-		if (isset($_SESSION['jenis']))
-		{
+		if (isset($_SESSION['jenis'])) {
 			$kh = $_SESSION['jenis'];
 			$jenis_sql = " AND jenis = $kh";
 			return $jenis_sql;
@@ -67,24 +67,20 @@ class Rtm_model extends CI_Model {
 		$nik = $_POST['nik_kepala'];
 
 		$no_rtm = $this->db->select('no_kk')
+			->where('desa_id', $this->config->item('desa_id'))
 			->order_by('length(no_kk) DESC, no_kk DESC')->limit(1)
 			->get('tweb_rtm')
 			->row()->no_kk;
-		if ($no_rtm)
-		{
-			if (strlen($no_rtm) >= 5)
-			{
+		if ($no_rtm) {
+			if (strlen($no_rtm) >= 5) {
 				// Gunakan 5 digit terakhir sebagai nomor urut
 				$kw = substr($no_rtm, 0, strlen($no_rtm) - 5);
 				$no_urut = substr($no_rtm, -5);
 				$no_urut = str_pad($no_urut + 1, 5, '0', STR_PAD_LEFT);
 				$rtm['no_kk'] = $kw . $no_urut;
-			}
-			else
+			} else
 				$rtm['no_kk'] = str_pad($no_rtm + 1, strlen($no_rtm), '0', STR_PAD_LEFT);;
-		}
-		else
-		{
+		} else {
 			$kw = $this->get_kode_wilayah();
 			$rtm['no_kk'] = $kw . str_pad('1', 5, '0', STR_PAD_LEFT);
 		}
@@ -102,7 +98,7 @@ class Rtm_model extends CI_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function delete($no_kk='', $semua=false)
+	public function delete($no_kk = '', $semua = false)
 	{
 		if (!$semua) $this->session->success = 1;
 
@@ -115,7 +111,7 @@ class Rtm_model extends CI_Model {
 
 		$outp = $this->db->where('no_kk', $no_kk)->delete('tweb_rtm');
 
-		status_sukses($outp, $gagal_saja=true); //Tampilkan Pesan
+		status_sukses($outp, $gagal_saja = true); //Tampilkan Pesan
 	}
 
 	public function delete_all()
@@ -123,9 +119,8 @@ class Rtm_model extends CI_Model {
 		$this->session->success = 1;
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
-			$this->delete($id, $semua=true);
+		foreach ($id_cb as $id) {
+			$this->delete($id, $semua = true);
 		}
 	}
 
@@ -134,6 +129,7 @@ class Rtm_model extends CI_Model {
 		$data = $_POST;
 		$no_rtm = $this->db->select('no_kk')
 			->where('id', $id)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('tweb_rtm')->row()->no_kk;
 		$temp['id_rtm'] = $no_rtm;
 		$temp['rtm_level'] = 2;
@@ -160,8 +156,7 @@ class Rtm_model extends CI_Model {
 			'updated_by' => $this->session->user
 		];
 
-		if ($rtm_level == 1)
-		{
+		if ($rtm_level == 1) {
 			// Ganti semua level penduduk dgn id_rtm yg sma -> rtm_level = 2 (Anggota)
 			$this->db->where('id_rtm', $no_rtm->no_kk)->update('tweb_penduduk', ['rtm_level' => '2']);
 
@@ -184,8 +179,7 @@ class Rtm_model extends CI_Model {
 		$pend = $this->rtm_model->get_anggota($id);
 		$this->db->where('id', $id);
 		$outp = $this->db->update('tweb_penduduk', $temp);
-		if ($pend['rtm_level'] == '1')
-		{
+		if ($pend['rtm_level'] == '1') {
 			$temp2['nik_kepala'] = 0;
 			$this->db->where('id', $pend['id_rtm']);
 			$outp = $this->db->update('tweb_rtm', $temp2);
@@ -197,15 +191,14 @@ class Rtm_model extends CI_Model {
 	public function rem_all_anggota($kk)
 	{
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
+		foreach ($id_cb as $id) {
 			$this->rem_anggota($kk, $id);
 		}
 	}
 
 	public function get_rtm($id)
 	{
-		$sql = "SELECT * FROM tweb_rtm WHERE id = ?";
+		$sql = "SELECT * FROM tweb_rtm WHERE id = ? AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql, $id);
 		$data  = $query->row_array();
 		return $data;
@@ -213,7 +206,7 @@ class Rtm_model extends CI_Model {
 
 	public function get_anggota($id)
 	{
-		$sql = "SELECT * FROM tweb_penduduk WHERE id_rtm = ?";
+		$sql = "SELECT * FROM tweb_penduduk WHERE id_rtm = ? AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql, $id);
 		$data  = $query->row_array();
 		return $data;
@@ -231,15 +224,14 @@ class Rtm_model extends CI_Model {
 		$sql = "SELECT p.id, p.nik, p.nama, h.nama as kk_level
 			FROM tweb_penduduk p
 			LEFT JOIN tweb_penduduk_hubungan h ON p.kk_level = h.id
-			WHERE (status = 1 OR status = 3) AND status_dasar = 1 AND (id_rtm = 0 OR id_rtm IS NULL)";
+			WHERE (status = 1 OR status = 3) AND status_dasar = 1 AND (id_rtm = 0 OR id_rtm IS NULL) AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 
 		//Formating Output
-		for ($i=0; $i<count($data); $i++)
-		{
-			$data[$i]['alamat'] = "Alamat :".$data[$i]['nama'];
-			$data[$i]['nama'] = ''.$data[$i]['nama'].' - '.$data[$i]['kk_level'].'';
+		for ($i = 0; $i < count($data); $i++) {
+			$data[$i]['alamat'] = "Alamat :" . $data[$i]['nama'];
+			$data[$i]['nama'] = '' . $data[$i]['nama'] . ' - ' . $data[$i]['kk_level'] . '';
 		}
 		return $data;
 	}
@@ -259,28 +251,27 @@ class Rtm_model extends CI_Model {
 			LEFT JOIN tweb_rtm_hubungan h ON u.rtm_level = h.id
 			LEFT JOIN tweb_rtm r ON u.id_rtm = r.no_kk
 			LEFT JOIN tweb_wil_clusterdesa b ON u.id_cluster = b.id
-			WHERE r.id = ? ORDER BY rtm_level";
+			WHERE r.id = ? AND u.desa_id = " . $this->config->item('desa_id') . " ORDER BY rtm_level";
 
 		$query = $this->db->query($sql, array($id));
 		$data = $query->result_array();
 
 		//Formating Output
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $i + 1;
-			$data[$i]['alamat'] = "Dusun ".$data[$i]['dusun'].", RW ".$data[$i]['rw'].", RT ".$data[$i]['rt'];
+			$data[$i]['alamat'] = "Dusun " . $data[$i]['dusun'] . ", RW " . $data[$i]['rw'] . ", RT " . $data[$i]['rt'];
 			$data[$i]['tanggallahir'] = tgl_indo($data[$i]['tanggallahir']);
 		}
 		return $data;
 	}
 
-	public function get_kepala_rtm($id, $is_no_kk=false)
+	public function get_kepala_rtm($id, $is_no_kk = false)
 	{
 		if (empty($id)) return;
 
 		$kolom_id = ($is_no_kk) ? "no_kk" : "id";
 		$this->load->model('penduduk_model');
-		$sql = "SELECT u.id, u.nik, u.nama, r.no_kk, x.nama AS sex, u.tempatlahir, u.tanggallahir, (SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(NOW()) - TO_DAYS(`tanggallahir`)), '%Y') + 0 FROM tweb_penduduk WHERE id = u.id) AS umur, d.nama as pendidikan, f.nama as warganegara, a.nama as agama, wil.rt, wil.rw, wil.dusun
+		$sql = "SELECT u.id, u.nik, u.nama, r.no_kk, x.nama AS sex, u.tempatlahir, u.tanggallahir, (SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(NOW()) - TO_DAYS(`tanggallahir`)), '%Y') + 0 FROM tweb_penduduk WHERE id = u.id AND desa_id = " . $this->config->item('desa_id') . ") AS umur, d.nama as pendidikan, f.nama as warganegara, a.nama as agama, wil.rt, wil.rw, wil.dusun
 			FROM tweb_rtm r
 			LEFT JOIN tweb_penduduk u ON u.id = r.nik_kepala
 			LEFT JOIN tweb_penduduk_sex x ON u.sex = x.id
@@ -288,7 +279,7 @@ class Rtm_model extends CI_Model {
 			LEFT JOIN tweb_penduduk_warganegara f ON u.warganegara_id = f.id
 			LEFT JOIN tweb_penduduk_agama a ON u.agama_id = a.id
 			LEFT JOIN tweb_wil_clusterdesa wil ON wil.id = u.id_cluster
-			WHERE r.$kolom_id = $id LIMIT 1";
+			WHERE r.$kolom_id = $id AND desa_id = " . $this->config->item('desa_id') . " LIMIT 1";
 		$query = $this->db->query($sql);
 		$data = $query->row_array();
 		$data['alamat_wilayah'] = $this->penduduk_model->get_alamat_wilayah($data['id']);
@@ -297,7 +288,7 @@ class Rtm_model extends CI_Model {
 
 	public function list_hubungan()
 	{
-		$sql = "SELECT id, nama as hubungan FROM tweb_rtm_hubungan WHERE 1";
+		$sql = "SELECT id, nama as hubungan FROM tweb_rtm_hubungan WHERE 1 AND desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		return $query->result_array();
 	}
@@ -305,18 +296,17 @@ class Rtm_model extends CI_Model {
 	public function update_nokk($id)
 	{
 		$data = $_POST;
-		if ($data['no_kk'])
-		{
+		if ($data['no_kk']) {
 			$ada_nokk = $this->db->select('id')
 				->where('no_kk', $data['no_kk'])
+				->where('desa_id', $this->config->item('desa_id'))
 				->get('tweb_rtm')->row()->id;
-			if ($ada_nokk and $ada_nokk != $id)
-			{
+			if ($ada_nokk and $ada_nokk != $id) {
 				$_SESSION['success'] = -1;
 				$_SESSION['error_msg'] = 'Nomor RTM itu sudah ada';
 				return;
 			}
-			$rtm = $this->db->where('id', $id)->get('tweb_rtm')->row();
+			$rtm = $this->db->where('id', $id)->where('desa_id', $this->config->item('desa_id'))->get('tweb_rtm')->row();
 			$this->db->where('id_rtm', $rtm->no_kk)
 				->update('tweb_penduduk', array('id_rtm' => $data['no_kk']));
 		}
@@ -335,7 +325,8 @@ class Rtm_model extends CI_Model {
 		$this->db
 			->select('t.nama')
 			->from('tweb_rtm u')
-			->join('tweb_penduduk t', 'u.nik_kepala = t.id', LEFT);
+			->join('tweb_penduduk t', 'u.nik_kepala = t.id', LEFT)
+			->where('u.desa_id', $this->config->item('desa_id'));
 
 		$data = $this->db->get()->result_array();
 
@@ -364,27 +355,40 @@ class Rtm_model extends CI_Model {
 	{
 		$this->list_data_sql();
 
-		switch ($o)
-		{
-			case 1: $this->db->order_by('u.no_kk'); break;
-			case 2: $this->db->order_by('u.no_kk', DESC); break;
-			case 3: $this->db->order_by('t.nama'); break;
-			case 4: $this->db->order_by('t.nama', DESC); break;
-			case 5: $this->db->order_by('u.tgl_daftar'); break;
-			case 6: $this->db->order_by('u.tgl_daftar', DESC); break;
-			default: ' ';
+		switch ($o) {
+			case 1:
+				$this->db->order_by('u.no_kk');
+				break;
+			case 2:
+				$this->db->order_by('u.no_kk', DESC);
+				break;
+			case 3:
+				$this->db->order_by('t.nama');
+				break;
+			case 4:
+				$this->db->order_by('t.nama', DESC);
+				break;
+			case 5:
+				$this->db->order_by('u.tgl_daftar');
+				break;
+			case 6:
+				$this->db->order_by('u.tgl_daftar', DESC);
+				break;
+			default:
+				' ';
 		}
 
-		if ($limit > 0 ) $this->db->limit($limit, $offset);
+		if ($limit > 0) $this->db->limit($limit, $offset);
 		$query_dasar = $this->db->select('u.*')->get_compiled_select();
 
 		$this->db
 			->select('u.id, u.no_kk, t.foto, t.nama AS kepala_kk, t.nik, k.alamat, c.dusun, c.rw, c.rt, u.tgl_daftar')
-			->select('(SELECT COUNT(p.id) FROM tweb_penduduk p WHERE p.id_rtm = u.no_kk ) AS jumlah_anggota')
+			->select('(SELECT COUNT(p.id) FROM tweb_penduduk p WHERE p.id_rtm = u.no_kk AND p.desa_id = ' . $this->config->item('desa_id') . ' ) AS jumlah_anggota')
 			->from("($query_dasar) as u")
 			->join('tweb_penduduk t', 'u.no_kk = t.id_rtm AND t.rtm_level = 1')
 			->join('tweb_keluarga k', 't.id_kk = k.id')
-			->join('tweb_wil_clusterdesa c', 't.id_cluster = c.id');
+			->join('tweb_wil_clusterdesa c', 't.id_cluster = c.id')
+			->where('u.desa_id', $this->config->item('desa_id'));
 
 		$data = $this->db->get()->result_array();
 
@@ -396,13 +400,13 @@ class Rtm_model extends CI_Model {
 		$this->db
 			->from('tweb_rtm u')
 			->join('tweb_penduduk t', 'u.no_kk = t.id_rtm AND t.rtm_level = 1')
-			->join('tweb_wil_clusterdesa c', 't.id_cluster = c.id');
+			->join('tweb_wil_clusterdesa c', 't.id_cluster = c.id')
+			->where('u.desa_id', $this->config->item('desa_id'));
 
 		$this->search_sql();
 
 		$list_kode = [['dusun', 'c.dusun'], ['rw', 'c.rw'], ['rt', 'c.rt']];
-		foreach ($list_kode as $list)
-		{
+		foreach ($list_kode as $list) {
 			$this->filter_sql($list[0], $list[1]);
 		}
 	}
@@ -410,8 +414,7 @@ class Rtm_model extends CI_Model {
 	private function search_sql()
 	{
 		$cari = $this->session->cari;
-		if ($cari)
-		{
+		if ($cari) {
 			$cari = $this->db->escape_like_str($cari);
 			$this->db->like('t.nama', $cari);
 		}
@@ -421,12 +424,8 @@ class Rtm_model extends CI_Model {
 	{
 		$value = $this->session->$session;
 
-		if (isset($value))
-		{
-				$this->db->where($field, $value);
+		if (isset($value)) {
+			$this->db->where($field, $value);
 		}
 	}
-
-
 }
-?>

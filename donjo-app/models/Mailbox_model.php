@@ -1,6 +1,7 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-class Mailbox_model extends CI_Model {
+class Mailbox_model extends CI_Model
+{
 
 	/**
 	 * Gunakan model ini untuk memindahkan semua method terkait mailbox layanan mandiri.
@@ -10,7 +11,6 @@ class Mailbox_model extends CI_Model {
 	{
 		parent::__construct();
 		$this->load->model('referensi_model');
-
 	}
 
 	public function list_menu()
@@ -37,7 +37,7 @@ class Mailbox_model extends CI_Model {
 		$data['id_artikel'] = 775;
 		$data['tgl_upload'] = date('Y-m-d H:i:s');
 		$data['updated_at'] = date('Y-m-d H:i:s');
-		$outp = $this->db->insert('komentar', $data);
+		$outp = $this->db->insert('komentar', $data + ['desa_id' => $this->config->item('desa_id')]);
 		status_sukses($outp);
 	}
 
@@ -52,6 +52,7 @@ class Mailbox_model extends CI_Model {
 			->where('tipe', $tipe)
 			->where('id_artikel', 775)
 			->from('komentar')
+			->where('desa_id', $this->config->item('desa_id'))
 			->order_by('id', 'DESC')
 			->get()
 			->result_array();
@@ -66,6 +67,7 @@ class Mailbox_model extends CI_Model {
 			->where('id', $id)
 			->where('id_artikel', 775)
 			->from('komentar')
+			->where('desa_id', $this->config->item('desa_id'))
 			->get()
 			->row_array();
 
@@ -76,10 +78,10 @@ class Mailbox_model extends CI_Model {
 	{
 		return $this->db
 			->where('email', $nik)
+			->where('desa_id', $this->config->item('desa_id'))
 			->where('id', $id)
 			->where('tipe', 2)
 			->where('id_artikel', 775)
 			->update('komentar', ['status' => $status]);
 	}
 }
-?>

@@ -181,8 +181,7 @@ class First_artikel_m extends CI_Model
 			->where('a.enabled', 1)
 			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('a.id_kategori NOT IN (1000)')
-			->where('a.tgl_upload < NOW()')
-			->where('a.desa_id', $this->config->item('desa_id'));
+			->where('a.tgl_upload < NOW()');
 
 		switch ($type) {
 			case 'acak':
@@ -296,7 +295,6 @@ class First_artikel_m extends CI_Model
 					->where('enabled', 1)
 					->where('desa_id', $this->config->item('desa_id'))
 					->where('gambar !=', '')
-					->where('desa_id', $this->config->item('desa_id'))
 					->where('tgl_upload < NOW()')
 					->order_by('tgl_upload DESC')
 					->limit(10)->get('artikel')->result_array();
@@ -411,7 +409,6 @@ class First_artikel_m extends CI_Model
 			->join('kategori k', 'a.id_kategori = k.id', 'left')
 			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('a.enabled', 1)
-			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('a.tgl_upload < NOW()')
 			->group_start()
 			->where('a.slug', $url)
@@ -462,7 +459,6 @@ class First_artikel_m extends CI_Model
 			->join('kategori k', 'a.id_kategori = k.id', 'left')
 			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('a.enabled', 1)
-			->where('a.desa_id', $this->config->item('desa_id'))
 			->where('tgl_upload < NOW()');
 
 		if (!empty($id)) {
@@ -502,8 +498,6 @@ class First_artikel_m extends CI_Model
 		$data['owner'] = htmlentities($_POST["owner"]);
 		$data['no_hp'] = bilangan($_POST["no_hp"]);
 		$data['email'] = email($_POST["email"]);
-		$data['desa_id'] = $this->config->item('desa_id');
-
 
 		// load library form_validation
 		$this->load->library('form_validation');
@@ -535,7 +529,6 @@ class First_artikel_m extends CI_Model
 		$data = $this->db->from('komentar')
 			->where('desa_id', $this->config->item('desa_id'))
 			->where('id_artikel', $id)
-			->where('desa_id', $this->config->item('desa_id'))
 			->where('status', 1)
 			->order_by('tgl_upload DESC')
 			->get()->result_array();
@@ -567,7 +560,6 @@ class First_artikel_m extends CI_Model
 		$id = $this->db->select('id')
 			->where('desa_id', $this->config->item('desa_id'))
 			->where('slug', $url)
-			->where('desa_id', $this->config->item('desa_id'))
 			->or_where('id', $url)
 			->get('artikel')
 			->row()->id;
