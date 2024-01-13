@@ -602,7 +602,7 @@
 		$sql = "SELECT u.id, u.nik, u.nama, u.alamat_sekarang as alamat, w.rt, w.rw, w.dusun
 			FROM tweb_penduduk u
 			LEFT JOIN tweb_wil_clusterdesa w ON u.id_cluster = w.id
-			WHERE (status = 1 ) AND id_kk = 0 AND desa_id = " . $this->config->item('desa_id') . "";
+			WHERE (status = 1 ) AND id_kk = 0 AND u.desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 
