@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -45,14 +45,15 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @link 	https://github.com/OpenSID/OpenSID
  */
 
-class Web_menu_model extends MY_Model {
+class Web_menu_model extends MY_Model
+{
 
 	private $urut_model;
 
 	public function __construct()
 	{
 		parent::__construct();
-		require_once APPPATH.'/models/Urut_model.php';
+		require_once APPPATH . '/models/Urut_model.php';
 		$this->urut_model = new Urut_Model('menu');
 	}
 
@@ -63,11 +64,10 @@ class Web_menu_model extends MY_Model {
 
 	private function search_sql($tip)
 	{
-		if (isset($_SESSION['cari']))
-		{
+		if (isset($_SESSION['cari'])) {
 			$cari = $_SESSION['cari'];
 			$kw = $this->db->escape_like_str($cari);
-			$kw = '%' .$kw. '%';
+			$kw = '%' . $kw . '%';
 			$search_sql = " AND (nama LIKE '$kw')";
 
 			return $search_sql;
@@ -76,8 +76,7 @@ class Web_menu_model extends MY_Model {
 
 	private function filter_sql()
 	{
-		if (isset($_SESSION['filter']))
-		{
+		if (isset($_SESSION['filter'])) {
 			$kf = $_SESSION['filter'];
 			$filter_sql = " AND enabled = $kf";
 
@@ -85,10 +84,10 @@ class Web_menu_model extends MY_Model {
 		}
 	}
 
-	public function paging($tip=0, $p=1, $o=0)
+	public function paging($tip = 0, $p = 1, $o = 0)
 	{
 		$sql = "SELECT COUNT(*) AS jml " . $this->list_data_sql();
-		$query = $this->db->query($sql,$tip);
+		$query = $this->db->query($sql, $tip);
 		$row = $query->row_array();
 		$jml_data = $row['jml'];
 
@@ -103,25 +102,33 @@ class Web_menu_model extends MY_Model {
 
 	private function list_data_sql()
 	{
-		$sql = " FROM menu WHERE tipe = ? ";
+		$sql = " FROM menu WHERE tipe = ? AND desa_id=" . $this->config->item('desa_id');
 		$sql .= $this->search_sql($tip);
 		$sql .= $this->filter_sql();
 
 		return $sql;
 	}
 
-	public function list_data($tip=0, $o=0, $offset=0, $limit=500)
+	public function list_data($tip = 0, $o = 0, $offset = 0, $limit = 500)
 	{
-		switch($o)
-		{
-			case 1: $order_sql = ' ORDER BY nama'; break;
-			case 2: $order_sql = ' ORDER BY nama DESC'; break;
-			case 3: $order_sql = ' ORDER BY enabled'; break;
-			case 4: $order_sql = ' ORDER BY enabled DESC'; break;
-			default:$order_sql = ' ORDER BY urut';
+		switch ($o) {
+			case 1:
+				$order_sql = ' ORDER BY nama';
+				break;
+			case 2:
+				$order_sql = ' ORDER BY nama DESC';
+				break;
+			case 3:
+				$order_sql = ' ORDER BY enabled';
+				break;
+			case 4:
+				$order_sql = ' ORDER BY enabled DESC';
+				break;
+			default:
+				$order_sql = ' ORDER BY urut';
 		}
 
-		$paging_sql = ' LIMIT ' .$offset. ',' .$limit;
+		$paging_sql = ' LIMIT ' . $offset . ',' . $limit;
 		$sql = "SELECT * " . $this->list_data_sql();
 		$sql .= $order_sql;
 		$sql .= $paging_sql;
@@ -130,8 +137,7 @@ class Web_menu_model extends MY_Model {
 		$data = $query->result_array();
 
 		$j = $offset;
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 			if ($data[$i]['link_tipe'] != 99) $data[$i]['link'] = $this->menu_slug($data[$i]['link']);
 
@@ -141,7 +147,7 @@ class Web_menu_model extends MY_Model {
 		return $data;
 	}
 
-	public function insert($tip=1)
+	public function insert($tip = 1)
 	{
 		$post = $this->input->post();
 		$data['tipe'] = $tip;
@@ -155,13 +161,13 @@ class Web_menu_model extends MY_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function update($id=0)
+	public function update($id = 0)
 	{
 		$post = $this->input->post();
 		$data['nama'] = htmlentities($post['nama']);
 		$data['link'] = $post['link'];
-		if ($data['link']=="")
-			UNSET($data['link']);
+		if ($data['link'] == "")
+			unset($data['link']);
 
 		$data['link_tipe'] = $post['link_tipe'];
 
@@ -171,13 +177,13 @@ class Web_menu_model extends MY_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function delete($id='', $semua=false)
+	public function delete($id = '', $semua = false)
 	{
 		if (!$semua) $this->session->success = 1;
 
 		$outp = $this->db->where('id', $id)->or_where('parrent', $id)->delete('menu');
 
-		status_sukses($outp, $gagal_saja=true); //Tampilkan Pesan
+		status_sukses($outp, $gagal_saja = true); //Tampilkan Pesan
 	}
 
 	public function delete_all()
@@ -185,23 +191,22 @@ class Web_menu_model extends MY_Model {
 		$this->session->success = 1;
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
-			$this->delete($id, $semua=true);
+		foreach ($id_cb as $id) {
+			$this->delete($id, $semua = true);
 		}
 	}
 
-	public function list_sub_menu($menu=1)
+	public function list_sub_menu($menu = 1)
 	{
 		$data = $this->db->select('*')
 			->from('menu')
 			->where('parrent', $menu)
 			->where('tipe', 3)
+			->where('desa_id', $this->config->item('desa_id'))
 			->order_by('urut')
 			->get()->result_array();
 
-		for ($i=0; $i<count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $i + 1;
 			if ($data[$i]['link_tipe'] != 99) $data[$i]['link'] = $this->menu_slug($data[$i]['link']);
 		}
@@ -209,7 +214,7 @@ class Web_menu_model extends MY_Model {
 		return $data;
 	}
 
-	public function insert_sub_menu($menu=0)
+	public function insert_sub_menu($menu = 0)
 	{
 		$post = $this->input->post();
 		$data = [];
@@ -224,16 +229,15 @@ class Web_menu_model extends MY_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function update_sub_menu($id=0)
+	public function update_sub_menu($id = 0)
 	{
 		$post = $this->input->post();
 		$data = [];
 		$data['nama'] = htmlentities($post['nama']);
 		$data['link'] = $post['link'];
 		$data['link_tipe'] = $post['link_tipe'];
-		if ($data['link'] == "")
-		{
-			UNSET($data['link']);
+		if ($data['link'] == "") {
+			unset($data['link']);
 		}
 
 		$this->db->where('id', $id);
@@ -241,13 +245,13 @@ class Web_menu_model extends MY_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function delete_sub_menu($id='', $semua=false)
+	public function delete_sub_menu($id = '', $semua = false)
 	{
 		if (!$semua) $this->session->success = 1;
 
 		$outp = $this->db->where('id', $id)->delete('menu');
 
-		status_sukses($outp, $gagal_saja=true); //Tampilkan Pesan
+		status_sukses($outp, $gagal_saja = true); //Tampilkan Pesan
 	}
 
 	public function delete_all_sub_menu()
@@ -255,13 +259,12 @@ class Web_menu_model extends MY_Model {
 		$this->session->success = 1;
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $id)
-		{
-			$this->delete_sub_menu($id, $semua=true);
+		foreach ($id_cb as $id) {
+			$this->delete_sub_menu($id, $semua = true);
 		}
 	}
 
-	public function menu_lock($id='',$val=0)
+	public function menu_lock($id = '', $val = 0)
 	{
 		$sql = "UPDATE menu SET enabled = ? WHERE id = ?";
 		$outp = $this->db->query($sql, array($val, $id));
@@ -269,9 +272,9 @@ class Web_menu_model extends MY_Model {
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
-	public function get_menu($id=0)
+	public function get_menu($id = 0)
 	{
-		$sql = "SELECT * FROM menu WHERE id = ?";
+		$sql = "SELECT * FROM menu WHERE id = ? AND desa_id=" . $this->config->item('desa_id');
 		$query = $this->db->query($sql, $id);
 		$data  = $query->row_array();
 		return $data;
@@ -280,7 +283,7 @@ class Web_menu_model extends MY_Model {
 	// $arah:
 	//		1 - turun
 	// 		2 - naik
-	public function urut($id, $arah, $tipe=1, $menu='')
+	public function urut($id, $arah, $tipe = 1, $menu = '')
 	{
 		$subset = !empty($menu) ? array("tipe" => 3, "parrent" => $menu) : array("tipe" => $tipe);
 		$this->urut_model->urut($id, $arah, $subset);
@@ -290,11 +293,10 @@ class Web_menu_model extends MY_Model {
 	{
 		$ada_menu = $this->db->where('link', $link)
 			->where('enabled', 1)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get('menu')
 			->num_rows();
 
 		return $ada_menu;
 	}
-
 }
-?>

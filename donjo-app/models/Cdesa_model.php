@@ -460,7 +460,8 @@ class Cdesa_model extends CI_Model
 		$this->db->select('p.id, p.nik,p.nama,k.no_kk,w.rt,w.rw,w.dusun')
 			->from('tweb_penduduk p')
 			->join('tweb_keluarga k', 'k.id = p.id_kk', 'left')
-			->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left');
+			->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left')
+			->where('p.desa_id', $this->config->item('desa_id'));
 		if ($nik)
 			$this->db->where('p.nik', $id);
 		else

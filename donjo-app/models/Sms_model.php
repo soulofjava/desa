@@ -1,4 +1,5 @@
 <?php
+
 /**
  * File ini:
  *
@@ -42,7 +43,8 @@
  * @link  https://github.com/OpenSID/OpenSID
  */
 
-class Sms_model extends MY_Model {
+class Sms_model extends MY_Model
+{
 
 	public function __construct()
 	{
@@ -56,8 +58,7 @@ class Sms_model extends MY_Model {
 
 	private function search_sql()
 	{
-		if (isset($_SESSION['cari']))
-		{
+		if (isset($_SESSION['cari'])) {
 			$cari = $_SESSION['cari'];
 			$kw = $this->db->escape_like_str($cari);
 			$kw = '%' . $kw . '%';
@@ -68,8 +69,7 @@ class Sms_model extends MY_Model {
 
 	private function filter_sql()
 	{
-		if (isset($_SESSION['filter']))
-		{
+		if (isset($_SESSION['filter'])) {
 			$kf = $_SESSION['filter'];
 			$filter_sql = " AND u.Class = $kf";
 			return $filter_sql;
@@ -96,7 +96,7 @@ class Sms_model extends MY_Model {
 	{
 		$sql = " FROM inbox u
 			LEFT JOIN kontak k on u.SenderNumber = k.no_hp
-			LEFT JOIN tweb_penduduk p on k.id_pend = p.id WHERE 1";
+			LEFT JOIN tweb_penduduk p on k.id_pend = p.id WHERE 1 AND u.desa_id = " . $this->config->item('desa_id') . "";
 		$sql .= $this->search_sql();
 		$sql .= $this->filter_sql();
 		return $sql;
@@ -105,8 +105,7 @@ class Sms_model extends MY_Model {
 	function list_data($o = 0, $offset = 0, $limit = 500)
 	{
 		//Ordering SQL
-		switch ($o)
-		{
+		switch ($o) {
 			case 1:
 				$order_sql = ' ORDER BY u.SenderNumber';
 				break;
@@ -142,8 +141,7 @@ class Sms_model extends MY_Model {
 
 		//Formating Output
 		$j = $offset;
-		for ($i = 0; $i < count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 			$j++;
 		}
@@ -156,14 +154,14 @@ class Sms_model extends MY_Model {
 		$data['autoreply_text'] = htmlentities($post['autoreply_text']);
 		$sql = "DELETE FROM setting_sms";
 		$query = $this->db->query($sql);
-		$outp = $this->db->insert('setting_sms', $data);
+		$outp = $this->db->insert('setting_sms', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		status_sukses($outp); //Tampilkan Pesan
 	}
 
 	public function get_autoreply()
 	{
-		$sql = "SELECT * FROM setting_sms LIMIT 1 ";
+		$sql = "SELECT * FROM setting_sms WHERE desa_id = " . $this->config->item('desa_id') . " LIMIT 1";
 		$query = $this->db->query($sql);
 		$data = $query->row_array();
 		return $data;
@@ -190,7 +188,7 @@ class Sms_model extends MY_Model {
 		$sql = " FROM sentitems u
 			LEFT JOIN kontak k on u.DestinationNumber = k.no_hp
 			LEFT JOIN tweb_penduduk p on k.id_pend = p.id
-			WHERE 1";
+			WHERE 1 AND u.desa_id = " . $this->config->item('desa_id') . "";
 		$sql .= $this->filter_sql();
 		return $sql;
 	}
@@ -198,8 +196,7 @@ class Sms_model extends MY_Model {
 	public function list_data_terkirim($o = 0, $offset = 0, $limit = 500)
 	{
 		//Ordering SQL
-		switch ($o)
-		{
+		switch ($o) {
 			case 1:
 				$order_sql = ' ORDER BY u.DestinationNumber';
 				break;
@@ -235,8 +232,7 @@ class Sms_model extends MY_Model {
 
 		//Formating Output
 		$j = $offset;
-		for ($i = 0; $i < count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 			$j++;
 		}
@@ -264,7 +260,7 @@ class Sms_model extends MY_Model {
 		$sql = " FROM outbox u
 			LEFT JOIN kontak k on u.DestinationNumber = k.no_hp
 			LEFT JOIN tweb_penduduk p on k.id_pend = p.id
-			WHERE 1";
+			WHERE 1 AND u.desa_id = " . $this->config->item('desa_id') . "";
 		$sql .= $this->filter_sql();
 		return $sql;
 	}
@@ -272,8 +268,7 @@ class Sms_model extends MY_Model {
 	public function list_data_tertunda($o = 0, $offset = 0, $limit = 500)
 	{
 		//Ordering SQL
-		switch ($o)
-		{
+		switch ($o) {
 			case 1:
 				$order_sql = ' ORDER BY u.DestinationNumber';
 				break;
@@ -309,8 +304,7 @@ class Sms_model extends MY_Model {
 
 		//Formating Output
 		$j = $offset;
-		for ($i = 0; $i < count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 			$j++;
 		}
@@ -322,7 +316,7 @@ class Sms_model extends MY_Model {
 		$post = $this->input->post();
 		$data['DestinationNumber'] = bilangan($post['DestinationNumber']);
 		$data['TextDecoded'] = htmlentities($post['TextDecoded']);
-		$outp = $this->db->insert('outbox', $data);
+		$outp = $this->db->insert('outbox', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		status_sukses($outp); //Tampilkan Pesan
 	}
@@ -334,16 +328,11 @@ class Sms_model extends MY_Model {
 
 	public function delete($Class = 0, $ID = '')
 	{
-		if ($Class == 2)
-		{
+		if ($Class == 2) {
 			$sql = "DELETE FROM sentitems WHERE ID = ?";
-		}
-		elseif ($Class == 1)
-		{
+		} elseif ($Class == 1) {
 			$sql = "DELETE FROM inbox WHERE ID = ?";
-		}
-		else
-		{
+		} else {
 			$sql = "DELETE FROM outbox WHERE ID = ?";
 		}
 		$outp = $this->db->query($sql, array($ID));
@@ -358,26 +347,18 @@ class Sms_model extends MY_Model {
 	{
 		$id_cb = $_POST['id_cb'];
 
-		if (count($id_cb))
-		{
-			foreach ($id_cb as $ID)
-			{
-				if ($Class == 2)
-				{
+		if (count($id_cb)) {
+			foreach ($id_cb as $ID) {
+				if ($Class == 2) {
 					$sql = "DELETE FROM sentitems WHERE ID = ?";
-				}
-				elseif ($Class == 1)
-				{
+				} elseif ($Class == 1) {
 					$sql = "DELETE FROM inbox WHERE ID = ?";
-				}
-				else
-				{
+				} else {
 					$sql = "DELETE FROM outbox WHERE ID = ?";
 				}
 				$outp = $this->db->query($sql, array($ID));
 			}
-		}
-		else
+		} else
 			$outp = false;
 
 		if ($outp)
@@ -388,17 +369,12 @@ class Sms_model extends MY_Model {
 
 	public function get_sms($Class = 0, $ID = 0)
 	{
-		if ($Class == 2)
-		{
-			$sql = "SELECT * FROM sentitems WHERE ID = ?";
-		}
-		elseif ($Class == 1)
-		{
-			$sql = "SELECT SenderNumber AS DestinationNumber,TextDecoded FROM inbox WHERE ID = ?";
-		}
-		else
-		{
-			$sql = "SELECT * FROM outbox WHERE ID = ?";
+		if ($Class == 2) {
+			$sql = "SELECT * FROM sentitems WHERE ID = ? AND desa_id = " . $this->config->item('desa_id') . "";
+		} elseif ($Class == 1) {
+			$sql = "SELECT SenderNumber AS DestinationNumber,TextDecoded FROM inbox WHERE ID = ? AND desa_id = " . $this->config->item('desa_id') . "";
+		} else {
+			$sql = "SELECT * FROM outbox WHERE ID = ? AND desa_id = " . $this->config->item('desa_id') . "";
 		}
 		$query = $this->db->query($sql, array($ID));
 		$data = $query->row_array();
@@ -408,7 +384,7 @@ class Sms_model extends MY_Model {
 
 	public function list_nama()
 	{
-		$sql = "SELECT * FROM tweb_penduduk WHERE id NOT IN (SELECT id_pend FROM kontak)";
+		$sql = "SELECT * FROM tweb_penduduk WHERE id AND desa_id = " . $this->config->item('desa_id') . " AND id NOT IN (SELECT id_pend FROM kontak WHERE desa_id = " . $this->config->item('desa_id') . ")";
 		$query = $this->db->query($sql);
 		$data  = $query->result_array();
 		return $data;
@@ -416,7 +392,7 @@ class Sms_model extends MY_Model {
 
 	public function list_kontak()
 	{
-		$sql = "SELECT * FROM daftar_kontak ";
+		$sql = "SELECT * FROM daftar_kontak WHERE desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		$data  = $query->result_array();
 		return $data;
@@ -424,7 +400,7 @@ class Sms_model extends MY_Model {
 
 	public function get_kontak($id = 0)
 	{
-		$sql = "SELECT * FROM daftar_kontak WHERE id_kontak = '$id'";
+		$sql = "SELECT * FROM daftar_kontak WHERE id_kontak = '$id' AND desa_id = " . $this->config->item('desa_id') . "";
 
 		$query = $this->db->query($sql);
 		$data  = $query->row_array();
@@ -433,7 +409,7 @@ class Sms_model extends MY_Model {
 
 	public function get_grup($id = 0)
 	{
-		$sql = "SELECT * FROM daftar_grup WHERE id_grup = '$id' ";
+		$sql = "SELECT * FROM daftar_grup WHERE id_grup = '$id' AND desa_id = " . $this->config->item('desa_id') . "";
 
 		$query = $this->db->query($sql);
 		$data  = $query->row_array();
@@ -451,10 +427,8 @@ class Sms_model extends MY_Model {
 		$query = $this->db->query($sql, array($id));
 		$row = $query->row();
 
-		if ($password == $row->password)
-		{
-			if ($pass_baru == $pass_baru1)
-			{
+		if ($password == $row->password) {
+			if ($pass_baru == $pass_baru1) {
 				$pass_baru = md5($pass_baru);
 				$sql = "UPDATE user SET password = ?, nama = ? WHERE id = ?";
 				$outp = $this->db->query($sql, array(
@@ -470,134 +444,122 @@ class Sms_model extends MY_Model {
 
 	public function list_grup()
 	{
-		$sql = "SELECT * FROM user_grup";
+		$sql = "SELECT * FROM user_grup WHERE desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		return $query->result_array();
 	}
 
 	public function list_grup_kontak()
 	{
-		$sql = "SELECT * FROM daftar_grup";
+		$sql = "SELECT * FROM daftar_grup WHERE desa_id = " . $this->config->item('desa_id') . "";
 		$query = $this->db->query($sql);
 		return $query->result_array();
 	}
 
 	private function sex_sql()
 	{
-		if (isset($_SESSION['sex1']))
-		{
+		if (isset($_SESSION['sex1'])) {
 			$kf = $_SESSION['sex1'];
-			$sex_sql = " AND u.sex = $kf";
+			$sex_sql = " AND u.sex = $kf AND u.desa_id = " . $this->config->item('desa_id') . " ";
 			return $sex_sql;
 		}
 	}
 
 	private function dusun_sql()
 	{
-		if (isset($_SESSION['dusun1']))
-		{
+		if (isset($_SESSION['dusun1'])) {
 			$kf = $_SESSION['dusun1'];
-			$dusun_sql = " AND a.dusun = '$kf'";
+			$dusun_sql = " AND a.dusun = '$kf' AND a.desa_id = " . $this->config->item('desa_id') . " ";
 			return $dusun_sql;
 		}
 	}
 
 	private function rw_sql()
 	{
-		if (isset($_SESSION['rw1']))
-		{
+		if (isset($_SESSION['rw1'])) {
 			$kf = $_SESSION['rw1'];
-			$rw_sql = " AND a.rw = '$kf'";
+			$rw_sql = " AND a.rw = '$kf' AND a.desa_id = " . $this->config->item('desa_id') . " ";
 			return $rw_sql;
 		}
 	}
 
 	private function rt_sql()
 	{
-		if (isset($_SESSION['rt1']))
-		{
+		if (isset($_SESSION['rt1'])) {
 			$kf = $_SESSION['rt1'];
-			$rt_sql = " AND a.rt = '$kf'";
+			$rt_sql = " AND a.rt = '$kf' AND a.desa_id = " . $this->config->item('desa_id') . " ";
 			return $rt_sql;
 		}
 	}
 
 	private function agama_sql()
 	{
-		if (isset($_SESSION['agama1']))
-		{
+		if (isset($_SESSION['agama1'])) {
 			$kf = $_SESSION['agama1'];
-			$agama_sql = " AND u.agama_id = $kf";
+			$agama_sql = " AND u.agama_id = $kf AND u.desa_id = " . $this->config->item('desa_id') . " ";
 			return $agama_sql;
 		}
 	}
 
 	private function pekerjaan_sql()
 	{
-		if (isset($_SESSION['pekerjaan1']))
-		{
+		if (isset($_SESSION['pekerjaan1'])) {
 			$kf = $_SESSION['pekerjaan1'];
-			$pekerjaan_sql = " AND u.pekerjaan_id = $kf";
+			$pekerjaan_sql = " AND u.pekerjaan_id = $kf AND u.desa_id = " . $this->config->item('desa_id') . " ";
 			return $pekerjaan_sql;
 		}
 	}
 
 	private function statuskawin_sql()
 	{
-		if (isset($_SESSION['status1']))
-		{
+		if (isset($_SESSION['status1'])) {
 			$kf = $_SESSION['status1'];
-			$statuskawin_sql = " AND u.status_kawin = $kf";
+			$statuskawin_sql = " AND u.status_kawin = $kf AND u.desa_id = " . $this->config->item('desa_id') . " ";
 			return $statuskawin_sql;
 		}
 	}
 
 	private function pendidikan_sql()
 	{
-		if (isset($_SESSION['pendidikan1']))
-		{
+		if (isset($_SESSION['pendidikan1'])) {
 			$kf = $_SESSION['pendidikan1'];
-			$pendidikan_sql = " AND u.pendidikan_kk_id = $kf";
+			$pendidikan_sql = " AND u.pendidikan_kk_id = $kf AND u.desa_id = " . $this->config->item('desa_id') . " ";
 			return $pendidikan_sql;
 		}
 	}
 
 	private function status_penduduk_sql()
 	{
-		if (isset($_SESSION['status_penduduk1']))
-		{
+		if (isset($_SESSION['status_penduduk1'])) {
 			$kf = $_SESSION['status_penduduk1'];
-			$status_penduduk_sql = " AND u.status = $kf";
+			$status_penduduk_sql = " AND u.status = $kf AND u.desa_id = " . $this->config->item('desa_id') . " ";
 			return $status_penduduk_sql;
 		}
 	}
 
 	private function grup_sql()
 	{
-		if (isset($_SESSION['grup1']))
-		{
+		if (isset($_SESSION['grup1'])) {
 			$kf = $_SESSION['grup1'];
-			$grup_sql = " AND k.id_kontak IN (SELECT id_kontak FROM anggota_grup_kontak WHERE id_grup = '$kf')";
+			$grup_sql = " AND k.id_kontak IN (SELECT id_kontak FROM anggota_grup_kontak WHERE id_grup = '$kf' AND desa_id = " . $this->config->item('desa_id') . ")";
 			return $grup_sql;
 		}
 	}
 
 	private function umur_max_sql()
 	{
-		if (isset($_SESSION['umur_max1']))
-		{
+		if (isset($_SESSION['umur_max1'])) {
 			$kf = $_SESSION['umur_max1'];
-			$umur_max_sql = " AND (SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(NOW())-TO_DAYS(`tanggallahir`)), '%Y')+0 FROM tweb_penduduk WHERE id = u.id) <= $kf";
+			$umur_max_sql = " AND (SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(NOW())-TO_DAYS(`tanggallahir`)), '%Y')+0 FROM tweb_penduduk WHERE id = u.id AND desa_id = " . $this->config->item('desa_id') . ") <= $kf";
 			return $umur_max_sql;
 		}
 	}
 
 	private function umur_min_sql()
 	{
-		if (isset($_SESSION['umur_min1']))
-		{
+		if (isset($_SESSION['umur_min1'])) {
 			$kf = $_SESSION['umur_min1'];
-			$umur_min_sql = " AND (SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(NOW())-TO_DAYS(`tanggallahir`)), '%Y')+0 FROM tweb_penduduk WHERE id = u.id) >= $kf";
+			$umur_min_sql = " AND (SELECT DATE_FORMAT(FROM_DAYS(TO_DAYS(NOW())-TO_DAYS(`tanggallahir`)), '%Y')+0 FROM tweb_penduduk WHERE id = u.id AND desa_id = " . $this->config->item('desa_id') . ") >= $kf";
 			return $umur_min_sql;
 		}
 	}
@@ -610,7 +572,7 @@ class Sms_model extends MY_Model {
 			FROM kontak k
 			LEFT JOIN tweb_penduduk u on k.id_pend = u.id
 			LEFT JOIN tweb_wil_clusterdesa a on u.id_cluster = a.id
-			WHERE 1 ";
+			WHERE 1 AND k.desa_id = " . $this->config->item('desa_id') . "";
 
 		$sql .= $this->sex_sql();
 		$sql .= $this->dusun_sql();
@@ -628,8 +590,7 @@ class Sms_model extends MY_Model {
 		$query = $this->db->query($sql);
 		$data  = $query->result_array();
 
-		foreach ($data as $hsl)
-		{
+		foreach ($data as $hsl) {
 			$no = $hsl['no_hp'];
 			$pesan = [];
 			$pesan['DestinationNumber'] = $no;
@@ -641,7 +602,7 @@ class Sms_model extends MY_Model {
 	public function paging_kontak($p = 1, $o = 0)
 	{
 		$sql = "SELECT COUNT(*) as jml " . $this->list_data_kontak_sql();
-		$query = $this->db->query($sql);
+		$query = $this->db->where('desa_id', $this->config->item('desa_id'))->query($sql);
 		$row = $query->row_array();
 		$jml_data = $row['jml'];
 
@@ -656,7 +617,7 @@ class Sms_model extends MY_Model {
 
 	private function list_data_kontak_sql()
 	{
-		$sql = " FROM daftar_kontak WHERE 1 ";
+		$sql = " FROM daftar_kontak WHERE 1";
 		$sql .= $this->search_kontak_sql();
 		return $sql;
 	}
@@ -675,8 +636,7 @@ class Sms_model extends MY_Model {
 
 		//Formating Output
 		$j = $offset;
-		for ($i = 0; $i < count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 			$j++;
 		}
@@ -685,8 +645,7 @@ class Sms_model extends MY_Model {
 
 	private function search_kontak_sql()
 	{
-		if (isset($_SESSION['cari_kontak']))
-		{
+		if (isset($_SESSION['cari_kontak'])) {
 			$cari = $_SESSION['cari_kontak'];
 			$kw = $this->db->escape_like_str($cari);
 			$kw = '%' . $kw . '%';
@@ -700,7 +659,7 @@ class Sms_model extends MY_Model {
 		$post = $this->input->post();
 		$data['id_pend'] = $post['id_pend'];
 		$data['no_hp'] = bilangan($post['no_hp']);
-		$outp = $this->db->insert('kontak', $data);
+		$outp = $this->db->insert('kontak', $data + ['desa_id' => $this->config->item('desa_id')]);
 	}
 
 	public function update_kontak()
@@ -721,13 +680,11 @@ class Sms_model extends MY_Model {
 	public function delete_all_kontak()
 	{
 		$id_cb = $_POST['id_cb'];
-		if (count($id_cb))
-		{
+		if (count($id_cb)) {
 			$list_id = implode(",", $id_cb);
 			$this->db->query("DELETE FROM kontak WHERE id_kontak IN (" . $list_id . ")");
 			$outp = true;
-		}
-		else
+		} else
 			$outp = false;
 
 		status_sukses($outp); //Tampilkan Pesan
@@ -736,7 +693,7 @@ class Sms_model extends MY_Model {
 	public function paging_grup($p = 1, $o = 0)
 	{
 		$sql = "SELECT COUNT(*) as jml " . $this->list_data_grup_sql();
-		$query = $this->db->query($sql);
+		$query = $this->db->where('desa_id', $this->config->item('desa_id'))->query($sql);
 		$row = $query->row_array();
 		$jml_data = $row['jml'];
 
@@ -751,7 +708,7 @@ class Sms_model extends MY_Model {
 
 	private function list_data_grup_sql()
 	{
-		$sql = " FROM daftar_grup TB WHERE 1 ";
+		$sql = " FROM daftar_grup TB WHERE 1";
 		$sql .= $this->search_grup_sql();
 		return $sql;
 	}
@@ -770,8 +727,7 @@ class Sms_model extends MY_Model {
 
 		//Formating Output
 		$j = $offset;
-		for ($i = 0; $i < count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 			$j++;
 		}
@@ -782,7 +738,7 @@ class Sms_model extends MY_Model {
 	{
 		$post = $this->input->post();
 		$data['nama_grup'] = htmlentities($post['nama_grup']);
-		$outp = $this->db->insert('kontak_grup', $data);
+		$outp = $this->db->insert('kontak_grup', $data + ['desa_id' => $this->config->item('desa_id')]);
 	}
 
 	public function update_grup()
@@ -796,19 +752,17 @@ class Sms_model extends MY_Model {
 
 	public function delete_grup($id = 0)
 	{
-		$this->db->query("DELETE FROM kontak_grup WHERE id_grup = ".$id);
+		$this->db->query("DELETE FROM kontak_grup WHERE id_grup = " . $id);
 	}
 
 	public function delete_all_grup()
 	{
 		$id_cb = $_POST['id_cb'];
-		if (count($id_cb))
-		{
+		if (count($id_cb)) {
 			$list_id = implode(",", $id_cb);
 			$this->db->query("DELETE FROM kontak_grup WHERE id_grup IN (" . $list_id . ")");
 			$outp = true;
-		}
-		else
+		} else
 			$outp = false;
 
 		if ($outp)
@@ -819,8 +773,7 @@ class Sms_model extends MY_Model {
 
 	private function search_grup_sql()
 	{
-		if (isset($_SESSION['cari_grup']))
-		{
+		if (isset($_SESSION['cari_grup'])) {
 			$cari = $_SESSION['cari_grup'];
 			$kw = $this->db->escape_like_str($cari);
 			$kw = '%' . $kw . '%';
@@ -831,8 +784,7 @@ class Sms_model extends MY_Model {
 
 	private function search_anggota_sql()
 	{
-		if (isset($_SESSION['cari_anggota']))
-		{
+		if (isset($_SESSION['cari_anggota'])) {
 			$cari = $_SESSION['cari_anggota'];
 			$kw = $this->db->escape_like_str($cari);
 			$kw = '%' . $kw . '%';
@@ -859,7 +811,7 @@ class Sms_model extends MY_Model {
 
 	private function list_data_anggota_sql($id)
 	{
-		$sql = " FROM daftar_anggota_grup WHERE id_grup = $id ";
+		$sql = " FROM daftar_anggota_grup WHERE id_grup = $id AND desa_id = " . $this->config->item('desa_id') . " ";
 		$sql .= $this->search_anggota_sql();
 		return $sql;
 	}
@@ -875,8 +827,7 @@ class Sms_model extends MY_Model {
 		$data = $query->result_array();
 
 		$j = $offset;
-		for ($i=0; $i < count($data); $i++)
-		{
+		for ($i = 0; $i < count($data); $i++) {
 			$data[$i]['no'] = $j + 1;
 			$j++;
 		}
@@ -885,7 +836,11 @@ class Sms_model extends MY_Model {
 
 	public function list_data_nama($id = 0)
 	{
-		$sql = "SELECT * FROM daftar_kontak WHERE id_kontak NOT IN (SELECT id_kontak FROM anggota_grup_kontak WHERE id_grup = $id) ";
+		// $sql = "SELECT * FROM daftar_kontak WHERE id_kontak NOT IN (SELECT id_kontak FROM anggota_grup_kontak WHERE id_grup = $id) ";
+		$sql = "SELECT * FROM daftar_kontak 
+        		WHERE id_kontak AND desa_id = " . $this->config->item('desa_id') . "
+        		AND id_kontak NOT IN (SELECT id_kontak FROM anggota_grup_kontak WHERE id_grup = $id AND desa_id = " . $this->config->item('desa_id') . ")";
+
 		$query = $this->db->query($sql);
 		$data  = $query->result_array();
 		return $data;
@@ -894,15 +849,13 @@ class Sms_model extends MY_Model {
 	public function insert_anggota($grup)
 	{
 		$id_cb = $_POST['id_cb'];
-		if (count($id_cb))
-		{
-			foreach ($id_cb as $a)
-			{
-				$sql  = "INSERT INTO anggota_grup_kontak(id_grup, id_kontak) VALUES($grup,$a)";
+		if (count($id_cb)) {
+			foreach ($id_cb as $a) {
+				$desa_id = $this->config->item('desa_id');
+				$sql  = "INSERT INTO anggota_grup_kontak(id_grup, id_kontak, desa_id) VALUES($grup,$a,$desa_id)";
 				$outp = $this->db->query($sql);
 			}
-		}
-		else
+		} else
 			$outp = false;
 
 		status_sukses($outp); //Tampilkan Pesan
@@ -917,19 +870,14 @@ class Sms_model extends MY_Model {
 	public function delete_all_anggota($grup = 0)
 	{
 		$id_cb = $_POST['id_cb'];
-		if (count($id_cb))
-		{
-			foreach ($id_cb as $id)
-			{
+		if (count($id_cb)) {
+			foreach ($id_cb as $id) {
 				$sql  = "DELETE FROM anggota_grup_kontak WHERE id_grup_kontak = $id";
 				$outp = $this->db->query($sql);
 			}
-		}
-		else
+		} else
 			$outp = false;
 
 		status_sukses($outp); //Tampilkan Pesan
 	}
-
 }
-?>

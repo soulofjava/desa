@@ -123,17 +123,34 @@ class Pamong_model extends CI_Model
 
 	public function autocomplete()
 	{
+		$desa_id = $this->config->item('desa_id');
+
 		$sql = "SELECT * FROM
-				(SELECT p.nama
-					FROM tweb_desa_pamong u
-					LEFT JOIN tweb_penduduk p ON u.id_pend = p.id) a
-				UNION SELECT pamong_nama FROM tweb_desa_pamong
-				UNION SELECT p.nik
-					FROM tweb_desa_pamong u
-					LEFT JOIN tweb_penduduk p ON u.id_pend = p.id
-				UNION SELECT pamong_nik FROM tweb_desa_pamong
-				UNION SELECT pamong_niap FROM tweb_desa_pamong
-				UNION SELECT pamong_nip FROM tweb_desa_pamong";
+        ((SELECT p.nama
+          FROM tweb_desa_pamong u
+          LEFT JOIN tweb_penduduk p ON u.id_pend = p.id
+          WHERE u.desa_id = $desa_id)
+         UNION
+         (SELECT pamong_nama
+          FROM tweb_desa_pamong
+          WHERE desa_id = $desa_id)
+         UNION
+         (SELECT p.nik
+          FROM tweb_desa_pamong u
+          LEFT JOIN tweb_penduduk p ON u.id_pend = p.id
+          WHERE u.desa_id = $desa_id)
+         UNION
+         (SELECT pamong_nik
+          FROM tweb_desa_pamong
+          WHERE desa_id = $desa_id)
+         UNION
+         (SELECT pamong_niap
+          FROM tweb_desa_pamong
+          WHERE desa_id = $desa_id)
+         UNION
+         (SELECT pamong_nip
+          FROM tweb_desa_pamong
+          WHERE desa_id = $desa_id)) result";
 		$query = $this->db->query($sql);
 		$data  = $query->result_array();
 
@@ -168,7 +185,7 @@ class Pamong_model extends CI_Model
 		$sql = "SELECT u.*, p.nama as nama
 			FROM tweb_desa_pamong u
 			LEFT JOIN tweb_penduduk p ON u.id_pend = p.id
-			WHERE pamong_id = ? WHERE desa_id = $this->config->item('desa_id')";
+			WHERE pamong_id = ? AND desa_id = " . $this->config->item('desa_id');
 		$query = $this->db->query($sql, $id);
 		$data  = $query->row_array();
 		$data['pamong_niap_nip'] = (!empty($data['pamong_nip']) and $data['pamong_nip'] != '-') ? $data['pamong_nip'] : $data['pamong_niap'];
@@ -342,7 +359,7 @@ class Pamong_model extends CI_Model
 			->from('penduduk_hidup u')
 			->join('tweb_wil_clusterdesa w', 'u.id_cluster = w.id', 'left')
 			->where('u.id NOT IN (SELECT id_pend FROM tweb_desa_pamong WHERE id_pend IS NOT NULL)')
-			->where('u.desa_id', $this->config->item('desa_id'))
+			->where('desa_id', $this->config->item('desa_id'))
 			->get()
 			->result_array();
 
@@ -359,6 +376,7 @@ class Pamong_model extends CI_Model
 			ELSE p.nama END AS nama', FALSE)
 			->from('tweb_desa_pamong dp')
 			->join('tweb_penduduk p', 'p.id = dp.id_pend', 'left')
+			->where('dp.desa_id', $this->config->item('desa_id'))
 			->where('dp.pamong_status', '1')
 			->where('dp.desa_id', $this->config->item('desa_id'))
 			->order_by('dp.urut')
@@ -400,7 +418,6 @@ class Pamong_model extends CI_Model
 			->select('atasan, pamong_id')
 			->where('atasan IS NOT NULL')
 			->where('pamong_status', 1)
-			->where('desa_id', $this->config->item('desa_id'))
 			->get('tweb_desa_pamong')->result_array();
 		$data['struktur'] = [];
 		foreach ($atasan as $pamong) {
@@ -412,8 +429,8 @@ class Pamong_model extends CI_Model
 			->select('(CASE WHEN id_pend IS NOT NULL THEN ph.nama ELSE p.pamong_nama END) as nama')
 			->from('tweb_desa_pamong p')
 			->join('penduduk_hidup ph', 'ph.id = p.id_pend', 'left')
+			->where('desa_id', $this->config->item('desa_id'))
 			->where('pamong_status', 1)
-			->where('p.desa_id', $this->config->item('desa_id'))
 			->get()->result_array();
 
 		return $data;

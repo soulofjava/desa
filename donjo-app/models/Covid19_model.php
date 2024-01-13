@@ -57,7 +57,7 @@ class Covid19_model extends CI_Model
 		$this->db->select('p.id');
 		$this->db->from('penduduk_hidup p');
 		$this->db->join('covid19_pemudik t', 'p.id = t.id_terdata', 'right');
-		$this->db->where('p.desa_id', $this->config->item('desa_id'));
+		$this->db->where('desa_id', $this->config->item('desa_id'));
 		$penduduk_not_in_pemudik = $this->db->get()->result_array();
 
 		$not_in_pemudik = "";
@@ -69,7 +69,7 @@ class Covid19_model extends CI_Model
 		$this->db->select('p.id as id, p.nik as nik, p.nama, w.rt, w.rw, w.dusun');
 		$this->db->from('penduduk_hidup p');
 		$this->db->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left');
-		$this->db->where('p.desa_id', $this->config->item('desa_id'));
+		$this->db->where('desa_id', $this->config->item('desa_id'));
 
 		if (!empty($not_in_pemudik)) {
 			$this->db->where("p.id NOT IN ($not_in_pemudik)");
