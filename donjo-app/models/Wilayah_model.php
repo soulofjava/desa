@@ -87,7 +87,7 @@ class Wilayah_model extends MY_Model
 	{
 		$sql = " FROM tweb_wil_clusterdesa u
 			LEFT JOIN penduduk_hidup a ON u.id_kepala = a.id
-			WHERE u.rt = '0' AND u.rw = '0' AND u.dsa_id=" . $this->config->item('desa_id');
+			WHERE u.rt = '0' AND u.rw = '0' AND u.desa_id=" . $this->config->item('desa_id');
 		$sql .= $this->search_sql();
 		return $sql;
 	}

@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -60,16 +60,14 @@ class Pembangunan_dokumentasi_model extends CI_Model
 		$builder = $this->db->select([
 			'd.*',
 		])
-		->from("{$this->table} d")
-		->join('pembangunan p', 'd.id_pembangunan = p.id')
-		->where('d.id_pembangunan', $id);
+			->from("{$this->table} d")
+			->join('pembangunan p', 'd.id_pembangunan = p.id')
+			->where('desa_id', $this->config->item('desa_id'))
+			->where('d.id_pembangunan', $id);
 
-		if (empty($search))
-		{
+		if (empty($search)) {
 			$condition = $builder;
-		}
-		else
-		{
+		} else {
 			$condition = $builder->group_start()
 				->like('d.keterangan', $search)
 				->or_like('keterangan', $search)
@@ -95,7 +93,7 @@ class Pembangunan_dokumentasi_model extends CI_Model
 		unset($data['file_gambar']);
 		unset($data['old_gambar']);
 
-		$outp = $this->db->insert('pembangunan_ref_dokumentasi', $data);
+		$outp = $this->db->insert('pembangunan_ref_dokumentasi', $data + ['desa_id' => $this->config->item('desa_id')]);
 
 		if ($outp) $_SESSION['success'] = 1;
 		else $_SESSION['success'] = -1;
@@ -134,14 +132,11 @@ class Pembangunan_dokumentasi_model extends CI_Model
 		);
 		// Adakah berkas yang disertakan?
 		$adaBerkas = !empty($_FILES[$jenis]['name']);
-		if ($adaBerkas !== TRUE)
-		{
+		if ($adaBerkas !== TRUE) {
 			return NULL;
 		}
 		// Tes tidak berisi script PHP
-		if (isPHP($_FILES['logo']['tmp_name'], $_FILES[$jenis]['name']))
-
-		{
+		if (isPHP($_FILES['logo']['tmp_name'], $_FILES[$jenis]['name'])) {
 			$_SESSION['error_msg'] .= " -> Jenis file ini tidak diperbolehkan ";
 			$_SESSION['success'] = -1;
 			redirect('identitas_desa');
@@ -151,23 +146,21 @@ class Pembangunan_dokumentasi_model extends CI_Model
 		// Inisialisasi library 'upload'
 		$this->upload->initialize($this->uploadConfig);
 		// Upload sukses
-		if ($this->upload->do_upload($jenis))
-		{
+		if ($this->upload->do_upload($jenis)) {
 			$uploadData = $this->upload->data();
 			// Buat nama file unik agar url file susah ditebak dari browser
 			$namaFileUnik = tambahSuffixUniqueKeNamaFile($uploadData['file_name']);
 			// Ganti nama file asli dengan nama unik untuk mencegah akses langsung dari browser
 			$fileRenamed = rename(
-				$this->uploadConfig['upload_path'].$uploadData['file_name'],
-				$this->uploadConfig['upload_path'].$namaFileUnik
+				$this->uploadConfig['upload_path'] . $uploadData['file_name'],
+				$this->uploadConfig['upload_path'] . $namaFileUnik
 			);
 			// Ganti nama di array upload jika file berhasil di-rename --
 			// jika rename gagal, fallback ke nama asli
 			$uploadData['file_name'] = $fileRenamed ? $namaFileUnik : $uploadData['file_name'];
 		}
 		// Upload gagal
-		else
-		{
+		else {
 			$_SESSION['success'] = -1;
 			$_SESSION['error_msg'] = $this->upload->display_errors(NULL, NULL);
 		}
@@ -182,6 +175,7 @@ class Pembangunan_dokumentasi_model extends CI_Model
 	public function find($id)
 	{
 		return $this->db->where('id', $id)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get($this->table)
 			->row();
 	}
@@ -189,6 +183,7 @@ class Pembangunan_dokumentasi_model extends CI_Model
 	public function find_dokumentasi($id_pembangunan)
 	{
 		return $this->db->where('id_pembangunan', $id_pembangunan)
+			->where('desa_id', $this->config->item('desa_id'))
 			->get($this->table)
 			->result();
 	}
