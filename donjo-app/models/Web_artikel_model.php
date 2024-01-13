@@ -254,7 +254,7 @@
 		}
 		else
 		{
-			$outp = $this->db->insert('artikel', $data);
+			$outp = $this->db->insert('artikel', $data + ['desa_id' =>  $this->config->item('desa_id')]);
 		}
 		if (!$outp) $_SESSION['success'] = -1;
 	}
@@ -293,7 +293,7 @@
 	{
 		$agenda = $this->ambil_data_agenda($data);
 		unset($data['id_agenda']);
-		$outp = $this->db->insert('artikel', $data);
+		$outp = $this->db->insert('artikel', $data + ['desa_id' =>  $this->config->item('desa_id')]);
 		if ($outp)
 		{
 			$insert_id = $this->db->insert_id();

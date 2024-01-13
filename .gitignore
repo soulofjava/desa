@@ -1,3 +1,6 @@
+#dari cholis
+#supayafile upload coba di localhost, tidak ikut ke up ke github
+desa/upload/*
 # File ini untuk branch master, berisi source code inti OpenSID
 donjo-app/config/db_donjo.php
 backup/
