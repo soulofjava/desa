@@ -200,7 +200,7 @@ class Referensi_model extends CI_Model
 
 		if ($termasuk) $this->db->where("id IN ($termasuk)");
 
-		$data = $this->db->select('*')->where('desa_id', $this->config->item('desa_id'))->order_by('id')->get($tabel)->result_array();
+		$data = $this->db->select('*')->order_by('id')->get($tabel)->result_array();
 		return $data;
 	}
 
