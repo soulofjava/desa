@@ -116,7 +116,7 @@ class Plan_lokasi_model extends MY_Model
 			FROM lokasi l
 			LEFT JOIN point p ON l.ref_point = p.id
 			LEFT JOIN point m ON p.parrent = m.id
-			WHERE 1 AND desa_id = " . $this->config->item('desa_id') . " ";
+			WHERE 1 AND l.desa_id = " . $this->config->item('desa_id') . " ";
 
 		$sql .= $this->search_sql();
 		$sql .= $this->filter_sql();
