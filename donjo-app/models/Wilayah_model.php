@@ -149,11 +149,10 @@ class Wilayah_model extends MY_Model
 
 			->group_start()
 			->where("w.rt = '0' and w.rw = '0'")
-			->where("w.desa_id", $this->config->item('desa_id'))
 			->or_where("w.rw <> '-' and w.rt = '0'")
 			->or_where("w.rt <> '0' and w.rt <> '-'")
 			->group_end()
-
+			
 			->order_by('w.urut_cetak, w.dusun, rw, rt')
 			->get()
 			->result_array();
@@ -164,13 +163,13 @@ class Wilayah_model extends MY_Model
 	{
 		$this->db
 			->select("(CASE
-				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(id) FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND rw <> '-' AND rt = '-' AND desa_id='" . $this->config->item('desa_id') . "')
+				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(id) FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND rw <> '-' AND rt = '-')
 				END) AS jumlah_rw");
 
 		$this->db
 			->select("(CASE
-				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(id) FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND rt <> '0' AND rt <> '-' AND desa_id='" . $this->config->item('desa_id') . "')
-				WHEN " . $this->case_rw . " THEN (SELECT COUNT(id) FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND rw = w.rw AND rt <> '0' AND rt <> '-' AND desa_id='" . $this->config->item('desa_id') . "')
+				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(id) FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND rt <> '0' AND rt <> '-')
+				WHEN " . $this->case_rw . " THEN (SELECT COUNT(id) FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND rw = w.rw AND rt <> '0' AND rt <> '-')
 				END) AS jumlah_rt");
 	}
 
@@ -178,23 +177,23 @@ class Wilayah_model extends MY_Model
 	{
 		$this->db
 			->select("(CASE
-				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND desa_id='" . $this->config->item('desa_id') . "'))
-				WHEN " . $this->case_rw . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun and rw = w.rw AND desa_id='" . $this->config->item('desa_id') . "'))
-				WHEN " . $this->case_rt . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster = w.id AND desa_id='" . $this->config->item('desa_id') . "')
+				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun))
+				WHEN " . $this->case_rw . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun and rw = w.rw))
+				WHEN " . $this->case_rt . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster = w.id)
 				END) AS jumlah_warga");
 
 		$this->db
 			->select("(CASE
-				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND desa_id='" . $this->config->item('desa_id') . "') AND p.sex = 1  AND p.desa_id='" . $this->config->item('desa_id') . "')
-				WHEN " . $this->case_rw . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun and rw = w.rw AND desa_id='" . $this->config->item('desa_id') . "') AND p.sex = 1  AND p.desa_id='" . $this->config->item('desa_id') . "')
-				WHEN " . $this->case_rt . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster = w.id and p.sex = 1  AND p.desa_id='" . $this->config->item('desa_id') . "')
+				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun) AND p.sex = 1)
+				WHEN " . $this->case_rw . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun and rw = w.rw) AND p.sex = 1)
+				WHEN " . $this->case_rt . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster = w.id and p.sex = 1)
 				END) AS jumlah_warga_l");
 
 		$this->db
 			->select("(CASE
-				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id='" . $this->config->item('desa_id') . "' AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id='" . $this->config->item('desa_id') . "' AND dusun = w.dusun) AND p.sex = 2)
-				WHEN " . $this->case_rw . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id='" . $this->config->item('desa_id') . "' AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id='" . $this->config->item('desa_id') . "' AND dusun = w.dusun and rw = w.rw) AND p.sex = 2)
-				WHEN " . $this->case_rt . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id='" . $this->config->item('desa_id') . "' AND p.id_cluster = w.id and p.sex = 2 AND p.desa_id='" . $this->config->item('desa_id') . "')
+				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = w.dusun) AND p.sex = 2)
+				WHEN " . $this->case_rw . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = w.dusun and rw = w.rw) AND p.sex = 2)
+				WHEN " . $this->case_rt . " THEN (SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.id_cluster = w.id and p.sex = 2)
 				END) AS jumlah_warga_p");
 	}
 
@@ -202,9 +201,9 @@ class Wilayah_model extends MY_Model
 	{
 		$this->db
 			->select("(CASE
-				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala = p.id WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun AND desa_id='" . $this->config->item('desa_id') . "') AND p.kk_level = 1 AND p.desa_id='" . $this->config->item('desa_id') . "')
-				WHEN " . $this->case_rw . " THEN (SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala = p.id WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun and rw = w.rw AND w.desa_id='" . $this->config->item('desa_id') . "') AND p.kk_level = 1 AND p.desa_id='" . $this->config->item('desa_id') . "')
-				WHEN " . $this->case_rt . " THEN (SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala = p.id WHERE p.id_cluster = w.id AND p.kk_level = 1 AND p.desa_id='" . $this->config->item('desa_id') . "')
+				WHEN " . $this->case_dusun . " THEN (SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala = p.id WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun) AND p.kk_level = 1)
+				WHEN " . $this->case_rw . " THEN (SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala = p.id WHERE p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE dusun = w.dusun and rw = w.rw) AND p.kk_level = 1)
+				WHEN " . $this->case_rt . " THEN (SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala = p.id WHERE p.id_cluster = w.id AND p.kk_level = 1)
 				END) AS jumlah_kk ");
 	}
 
@@ -421,10 +420,10 @@ class Wilayah_model extends MY_Model
 	{
 		$this->list_data_rt_query($dusun, $rw);
 		$this->db->select("u.*, a.nama AS nama_ketua, a.nik AS nik_ketua,
-		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id='" . $this->config->item('desa_id') . "' AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa  desa_id='" . $this->config->item('desa_id') . "' AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt)) AS jumlah_warga,
-		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id='" . $this->config->item('desa_id') . "' AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id='" . $this->config->item('desa_id') . "' AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.sex = 1) AS jumlah_warga_l,
-		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id='" . $this->config->item('desa_id') . "' AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id='" . $this->config->item('desa_id') . "' AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.sex = 2) AS jumlah_warga_p,
-		(SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala=p.id  WHERE p.desa_id='" . $this->config->item('desa_id') . "' AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id='" . $this->config->item('desa_id') . "' AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.kk_level = 1 AND p.desa_id='" . $this->config->item('desa_id') . "') AS jumlah_kk");
+		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa  desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt)) AS jumlah_warga,
+		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.sex = 1) AS jumlah_warga_l,
+		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.sex = 2) AS jumlah_warga_p,
+		(SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala=p.id  WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.kk_level = 1 AND p.desa_id=" . $this->config->item('desa_id') . ") AS jumlah_kk");
 
 		$this->db
 			->order_by('u.urut', 'ASC');
@@ -491,7 +490,7 @@ class Wilayah_model extends MY_Model
 
 	public function get_penduduk($id = 0)
 	{
-		$sql = "SELECT id,nik,nama FROM penduduk_hidup WHERE id = ?  AND desa_id='" . $this->config->item('desa_id') . "'";
+		$sql = "SELECT id,nik,nama FROM penduduk_hidup WHERE id = ?  AND desa_id=" . $this->config->item('desa_id');
 		$query = $this->db->query($sql, $id);
 		$data = $query->row_array();
 		return $data;

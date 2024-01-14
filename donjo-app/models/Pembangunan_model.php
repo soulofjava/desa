@@ -106,7 +106,7 @@ class Pembangunan_model extends CI_Model
 			'(CASE WHEN p.id_lokasi IS NOT NULL THEN CONCAT("RT ", w.rt, " / RW ", w.rw, " - ", w.dusun) ELSE p.lokasi END) AS alamat',
 		])
 			->from('pembangunan p')
-			->where('desa_id', $this->config->item('desa_id'))
+			->where('p.desa_id', $this->config->item('desa_id'))
 			->where('p.status = 1')
 			->join('tweb_wil_clusterdesa w', 'p.id_lokasi = w.id', 'left')
 			->get()->result();
