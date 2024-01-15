@@ -294,7 +294,7 @@ class Web_dokumen_model extends MY_Model
 		$data['created_by'] = $mandiri ? $this->session->nik : $this->session->user;
 
 		unset($data['anggota_kk']);
-		$retval &= $this->db->insert('dokumen', $data);
+		$retval &= $this->db->insert('dokumen', $data + ['desa_id' => $this->config->item('desa_id')]);
 		$insert_id = $this->db->insert_id();
 
 		if ($retval) {

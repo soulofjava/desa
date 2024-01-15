@@ -635,10 +635,11 @@
 			LEFT JOIN tweb_penduduk_hubungan h ON u.kk_level = h.id
 			LEFT JOIN tweb_wil_clusterdesa b ON u.id_cluster = b.id
 			LEFT JOIN tweb_keluarga k ON u.id_kk = k.id
-			WHERE status = 1 AND status_dasar = 1 AND id_kk = ? AND desa_id = " . $this->config->item('desa_id') . "";
+			WHERE status = 1 AND status_dasar = 1 AND id_kk = ? AND u.desa_id = " . $this->config->item('desa_id') . "";
 		if ($options['dengan_kk'] !== NULL and !$options['dengan_kk']) $sql .= " AND kk_level <> 1";
 		if (!empty($options['pilih'])) $sql .= " AND u.nik IN (" . $options['pilih'] . ")";
 		$sql .= " ORDER BY kk_level, tanggallahir";
+		// die($sql);
 		$query = $this->db->query($sql, array($id));
 		$data = $query->result_array();
 
@@ -858,7 +859,7 @@
 				FROM tweb_keluarga k
 				LEFT JOIN tweb_wil_clusterdesa a ON k.id_cluster = a.id
 				WHERE k.id = ?
-				AND desa_id = " . $this->config->item('desa_id') . "
+				AND k.desa_id = " . $this->config->item('desa_id') . "
 				";
 		$query = $this->db->query($sql, $id_kk);
 		$data  = $query->row_array();
