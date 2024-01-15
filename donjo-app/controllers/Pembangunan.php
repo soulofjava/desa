@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -68,8 +68,7 @@ class Pembangunan extends Admin_Controller
 
 	public function index()
 	{
-		if ($this->input->is_ajax_request())
-		{
+		if ($this->input->is_ajax_request()) {
 			$start = $this->input->post('start');
 			$length = $this->input->post('length');
 			$search = $this->input->post('search[value]');
@@ -94,15 +93,12 @@ class Pembangunan extends Admin_Controller
 
 	public function form($id = '')
 	{
-		if ($id)
-		{
+		if ($id) {
 			$data['main'] = $this->model->find($id);
 			$data['list_lokasi'] = $this->model->list_dusun_rt_rw();
 			$data['sumber_dana'] = $this->referensi_model->list_ref(SUMBER_DANA);
 			$data['form_action'] = site_url("pembangunan/update/$id");
-		}
-		else
-		{
+		} else {
 			$data['main'] = NULL;
 			$data['list_lokasi'] = $this->model->list_dusun_rt_rw();
 			$data['sumber_dana'] = $this->referensi_model->list_ref(SUMBER_DANA);
@@ -128,12 +124,9 @@ class Pembangunan extends Admin_Controller
 	{
 		$this->model->delete($id);
 
-		if ($this->db->affected_rows())
-		{
+		if ($this->db->affected_rows()) {
 			$this->session->success = 4;
-		}
-		else
-		{
+		} else {
 			$this->session->success = -4;
 		}
 
@@ -149,8 +142,7 @@ class Pembangunan extends Admin_Controller
 		if (is_null($data)) show_404();
 
 		// Update lokasi maps
-		if ($request = $this->input->post())
-		{
+		if ($request = $this->input->post()) {
 			$this->model->update_lokasi_maps($id, $request);
 
 			$this->session->success = 1;

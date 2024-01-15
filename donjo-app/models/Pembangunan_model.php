@@ -74,7 +74,7 @@ class Pembangunan_model extends CI_Model
 			->from("{$this->table} p")
 			->join('pembangunan_ref_dokumentasi d', 'd.id_pembangunan = p.id', 'left')
 			->join('tweb_wil_clusterdesa w', 'p.id_lokasi = w.id', 'left')
-			->where('desa_id', $this->config->item('desa_id'))
+			->where('p.desa_id', $this->config->item('desa_id'))
 			->group_by('p.id');
 
 		if (empty($search)) {
@@ -238,7 +238,7 @@ class Pembangunan_model extends CI_Model
 		])
 			->from("{$this->table} p")
 			->join('tweb_wil_clusterdesa w', 'p.id_lokasi = w.id', 'left')
-			->where('desa_id', $this->config->item('desa_id'))
+			->where('p.desa_id', $this->config->item('desa_id'))
 			->where('p.id', $id)
 			->get()
 			->row();
@@ -248,6 +248,7 @@ class Pembangunan_model extends CI_Model
 	{
 		return $this->db->select('tahun_anggaran')
 			->distinct()
+			->where('desa_id', $this->config->item('desa_id'))
 			->order_by('tahun_anggaran', 'desc')
 			->get($this->table)
 			->result();
