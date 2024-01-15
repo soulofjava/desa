@@ -359,7 +359,7 @@ class Pamong_model extends CI_Model
 			->from('penduduk_hidup u')
 			->join('tweb_wil_clusterdesa w', 'u.id_cluster = w.id', 'left')
 			->where('u.id NOT IN (SELECT id_pend FROM tweb_desa_pamong WHERE id_pend IS NOT NULL)')
-			->where('desa_id', $this->config->item('desa_id'))
+			->where('u.desa_id', $this->config->item('desa_id'))
 			->get()
 			->result_array();
 
@@ -444,7 +444,7 @@ class Pamong_model extends CI_Model
 			->from('tweb_desa_pamong p')
 			->join('penduduk_hidup ph', 'ph.id = p.id_pend', 'left')
 			->where('pamong_status', 1)
-			->where('desa_id', $this->config->item('desa_id'))
+			->where('p.desa_id', $this->config->item('desa_id'))
 			->order_by('nama')
 			->get()->result_array();
 		return $data;
