@@ -1356,8 +1356,8 @@ class Penduduk_model extends MY_Model
 
 			if ($tipe == 13 or $tipe == 17) $this->db->where('STATUS', 1)->where('desa_id', $this->config->item('desa_id'));
 			if ($tipe == 15) $this->db->where('STATUS', 0)->where('desa_id', $this->config->item('desa_id'));
-
-			$judul = $this->db->get_where($table, ['id' => $nomor])->where('desa_id', $this->config->item('desa_id'))->row_array();
+			$judul = $this->db->get_where($table, ['id' => $nomor, 'desa_id' => $this->config->item('desa_id')])->row_array();
+			// die($judul);
 		}
 
 		if ($sex == 1) $judul['nama'] .= " - LAKI-LAKI";

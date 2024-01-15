@@ -249,9 +249,9 @@ class Laporan_penduduk_model extends MY_Model
 			->where('u.desa_id', $this->config->item('desa_id'))
 			->group_by('u.id');
 
-		if ($dusun = $this->session->userdata("dusun")) $this->db->where('a.dusun', $dusun)->where('desa_id', $this->config->item('desa_id'));
-		if ($rw = $this->session->userdata("rw")) $this->db->where('a.rw', $rw)->where('desa_id', $this->config->item('desa_id'));
-		if ($rt = $this->session->userdata("rt")) $this->db->where('a.rt', $rt)->where('desa_id', $this->config->item('desa_id'));
+		if ($dusun = $this->session->userdata("dusun")) $this->db->where('a.dusun', $dusun);
+		if ($rw = $this->session->userdata("rw")) $this->db->where('a.rw', $rw);
+		if ($rt = $this->session->userdata("rt")) $this->db->where('a.rt', $rt);
 	}
 
 	protected function data_jml_semua_penduduk()
@@ -264,9 +264,9 @@ class Laporan_penduduk_model extends MY_Model
 			->join('tweb_wil_clusterdesa a', 'b.id_cluster = a.id', 'left')
 			->where('b.desa_id', $this->config->item('desa_id'));
 
-		if ($dusun = $this->session->userdata("dusun")) $this->db->where('a.dusun', $dusun)->where('desa_id', $this->config->item('desa_id'));
-		if ($rw = $this->session->userdata("rw")) $this->db->where('a.rw', $rw)->where('desa_id', $this->config->item('desa_id'));
-		if ($rt = $this->session->userdata("rt")) $this->db->where('a.rt', $rt)->where('desa_id', $this->config->item('desa_id'));
+		if ($dusun = $this->session->userdata("dusun")) $this->db->where('a.dusun', $dusun);
+		if ($rw = $this->session->userdata("rw")) $this->db->where('a.rw', $rw);
+		if ($rt = $this->session->userdata("rt")) $this->db->where('a.rt', $rt);
 
 		$semua = $this->db->get()->row_array();
 
@@ -282,7 +282,7 @@ class Laporan_penduduk_model extends MY_Model
 			->select('COUNT(CASE WHEN p.sex = 2 THEN p.id END) AS perempuan')
 			->from('keluarga_aktif k')
 			->join('tweb_penduduk p', 'p.id=k.nik_kepala', 'left')
-			->where('desa_id', $this->config->item('desa_id'))
+			->where('k.desa_id', $this->config->item('desa_id'))
 			->get()->row_array();
 
 		return $semua;
@@ -345,9 +345,9 @@ class Laporan_penduduk_model extends MY_Model
 
 	private function str_jml_penduduk($where, $sex = '')
 	{
-		if ($dusun = $this->session->userdata("dusun")) $this->db->where('a.dusun', $dusun)->where('a.desa_id', $this->config->item('desa_id'));
-		if ($rw = $this->session->userdata("rw")) $this->db->where('a.rw', $rw)->where('a.desa_id', $this->config->item('desa_id'));
-		if ($rt = $this->session->userdata("rt")) $this->db->where('a.rt', $rt)->where('a.desa_id', $this->config->item('desa_id'));
+		if ($dusun = $this->session->userdata("dusun")) $this->db->where('a.dusun', $dusun);
+		if ($rw = $this->session->userdata("rw")) $this->db->where('a.rw', $rw);
+		if ($rt = $this->session->userdata("rt")) $this->db->where('a.rt', $rt);
 		if ($sex) $this->db->where('b.sex', $sex);
 		$str_jml_penduduk = $this->db->select('COUNT(b.id)')
 			->from('penduduk_hidup b')
@@ -461,7 +461,7 @@ class Laporan_penduduk_model extends MY_Model
 				$this->select_jml($where);
 				$this->db->select("u.*")
 					->from('tweb_status_ktp u')
-					->where('desa_id', $this->config->item('desa_id'));
+					->where('u.desa_id', $this->config->item('desa_id'));
 				break;
 
 			default:
@@ -504,7 +504,6 @@ class Laporan_penduduk_model extends MY_Model
 		if ($namespace->select_per_kategori()) {
 			$this->order_by($o);
 			$data = $this->db->get()->result_array();
-			// die($this->db->last_query($data));
 			$this->isi_nomor($data);
 		} else $data = [];
 
@@ -516,7 +515,6 @@ class Laporan_penduduk_model extends MY_Model
 
 		$data[] = $this->baris_belum($semua, $total, $judul_belum);
 		$this->hitung_persentase($data, $semua);
-
 		return $data;
 	}
 

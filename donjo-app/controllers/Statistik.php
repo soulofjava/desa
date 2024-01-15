@@ -1,6 +1,6 @@
 <?php
 
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -45,7 +45,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * @link 	https://github.com/OpenSID/OpenSID
  */
 
-class Statistik extends Admin_Controller {
+class Statistik extends Admin_Controller
+{
 
 	private $_list_session;
 
@@ -94,24 +95,17 @@ class Statistik extends Admin_Controller {
 	private function get_data_stat(&$data, $lap)
 	{
 		$data['stat'] = $this->laporan_penduduk_model->judul_statistik($lap);
-		if ($lap > 50)
-		{
+		if ($lap > 50) {
 			// Untuk program bantuan, $lap berbentuk '50<program_id>'
 			$program_id = preg_replace('/^50/', '', $lap);
 			$data['program'] = $this->program_bantuan_model->get_sasaran($program_id);
 			$data['judul_kelompok'] = $data['program']['judul_sasaran'];
 			$data['kategori'] = 'bantuan';
-		}
-		elseif (in_array($lap, array('bantuan_penduduk', 'bantuan_keluarga')))
-		{
+		} elseif (in_array($lap, array('bantuan_penduduk', 'bantuan_keluarga'))) {
 			$data['kategori'] = 'bantuan';
-		}
-		elseif ($lap > 20 OR "$lap" == 'kelas_sosial')
-		{
+		} elseif ($lap > 20 or "$lap" == 'kelas_sosial') {
 			$data['kategori'] = 'keluarga';
-		}
-		else
-		{
+		} else {
 			$data['kategori'] = 'penduduk';
 		}
 	}
@@ -131,8 +125,7 @@ class Statistik extends Admin_Controller {
 	*/
 	public function daftar($aksi = '', $lap = '')
 	{
-		foreach ($this->_list_session as $list)
-		{
+		foreach ($this->_list_session as $list) {
 			$data[$list] = $this->session->$list;
 		}
 
@@ -167,15 +160,12 @@ class Statistik extends Admin_Controller {
 
 	public function form_rentang($id = 0)
 	{
-		if ($id == 0)
-		{
+		if ($id == 0) {
 			$data['form_action'] = site_url("statistik/rentang_insert");
 			$data['rentang'] = $this->laporan_penduduk_model->get_rentang_terakhir();
 			$data['rentang']['nama'] = "";
 			$data['rentang']['sampai'] = "";
-		}
-		else
-		{
+		} else {
 			$data['form_action'] = site_url("statistik/rentang_update/$id");
 			$data['rentang'] = $this->laporan_penduduk_model->get_rentang($id);
 		}
@@ -246,30 +236,24 @@ class Statistik extends Admin_Controller {
 
 	private function get_cluster_session()
 	{
-		foreach ($this->_list_session as $list)
-		{
+		foreach ($this->_list_session as $list) {
 			if (in_array($list, ['dusun', 'rw', 'rt']))
 				$$list = $this->session->$list;
 		}
 
-		if (isset($dusun))
-		{
+		if (isset($dusun)) {
 			$data['dusun'] = $dusun;
 			$data['list_rw'] = $this->wilayah_model->list_rw($dusun);
 
-			if (isset($rw))
-			{
+			if (isset($rw)) {
 				$data['rw'] = $rw;
 				$data['list_rt'] = $this->wilayah_model->list_rt($dusun, $rw);
 
 				if (isset($rt))
 					$data['rt'] = $rt;
 				else $data['rt'] = '';
-			}
-			else $data['rw'] = '';
-		}
-		else
-		{
+			} else $data['rw'] = '';
+		} else {
 			$data['dusun'] = $data['rw'] = $data['rt'] = '';
 		}
 
@@ -285,7 +269,7 @@ class Statistik extends Admin_Controller {
 		$this->load->view('gis/penduduk_gis', $data);
 	}
 
-	public function chart_gis_desa($lap = 0, $desa = '' )
+	public function chart_gis_desa($lap = 0, $desa = '')
 	{
 		($desa) ? $this->session->set_userdata('desa', ununderscore($desa)) : $this->session->unset_userdata('desa');
 		$this->session->unset_userdata('dusun');
@@ -295,7 +279,7 @@ class Statistik extends Admin_Controller {
 		redirect("statistik/load_chart_gis/$lap");
 	}
 
-	public function chart_gis_dusun($lap = 0, $dusun = '' )
+	public function chart_gis_dusun($lap = 0, $dusun = '')
 	{
 		($dusun) ? $this->session->set_userdata('dusun', ununderscore($dusun)) : $this->session->unset_userdata('dusun');
 		$this->session->unset_userdata('rw');
@@ -304,7 +288,7 @@ class Statistik extends Admin_Controller {
 		redirect("statistik/load_chart_gis/$lap");
 	}
 
-	public function chart_gis_rw($lap = 0, $dusun = '', $rw = '' )
+	public function chart_gis_rw($lap = 0, $dusun = '', $rw = '')
 	{
 		($dusun) ? $this->session->set_userdata('dusun', ununderscore($dusun)) : $this->session->unset_userdata('dusun');
 		($rw) ? $this->session->set_userdata('rw', ununderscore($rw)) : $this->session->unset_userdata('rw');
@@ -313,7 +297,7 @@ class Statistik extends Admin_Controller {
 		redirect("statistik/load_chart_gis/$lap");
 	}
 
-	public function chart_gis_rt($lap = 0, $dusun = '', $rw = '', $rt = '' )
+	public function chart_gis_rt($lap = 0, $dusun = '', $rw = '', $rt = '')
 	{
 		($dusun) ? $this->session->set_userdata('dusun', ununderscore($dusun)) : $this->session->unset_userdata('dusun');
 		($rw) ? $this->session->set_userdata('rw', ununderscore($rw)) : $this->session->unset_userdata('rw');
@@ -328,8 +312,7 @@ class Statistik extends Admin_Controller {
 		$data = array();
 		$no = $_POST['start'];
 
-		foreach ($peserta as $baris)
-		{
+		foreach ($peserta as $baris) {
 			$no++;
 			$row = array();
 			$row[] = $no;

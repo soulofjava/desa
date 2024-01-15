@@ -1,4 +1,4 @@
-<?php if(!defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 /**
  * File ini:
@@ -44,7 +44,8 @@
  */
 
 
-class Program_bantuan_model extends MY_Model {
+class Program_bantuan_model extends MY_Model
+{
 
 	// Untuk datatables peserta bantuan di themes/klasik/partials/statistik.php (web)
 	var $column_order = array(null, 'program', 'peserta', null); //set column field database for datatable orderable
@@ -77,13 +78,10 @@ class Program_bantuan_model extends MY_Model {
 
 	public function list_program($sasaran = 0)
 	{
-		if ($sasaran > 0)
-		{
+		if ($sasaran > 0) {
 			$strSQL = "SELECT p.id, p.nama, p.sasaran, p.ndesc, p.sdate, p.edate, p.userid, p.status
-				FROM program p WHERE p.sasaran=".$sasaran;
-		}
-		else
-		{
+				FROM program p WHERE p.sasaran=" . $sasaran;
+		} else {
 			$strSQL = "SELECT p.id, p.nama, p.sasaran, p.ndesc, p.sdate, p.edate, p.userid, p.status, CONCAT('50',p.id) as lap
 				FROM program p WHERE 1";
 		}
@@ -146,8 +144,7 @@ class Program_bantuan_model extends MY_Model {
 	public function get_peserta($peserta_id, $sasaran)
 	{
 		$this->load->model('wilayah_model');
-		switch ($sasaran)
-		{
+		switch ($sasaran) {
 			case 1:
 				// Data Penduduk; $peserta_id adalah NIK
 				$data = $this->get_penduduk($peserta_id);
@@ -175,7 +172,7 @@ class Program_bantuan_model extends MY_Model {
 			case 3:
 				// Data Penduduk; $peserta_id adalah No RTM (kolom no_kk)
 				$data = $this->rtm_model->get_kepala_rtm($peserta_id, $is_no_kk = true);
-			 	$data['id_peserta'] = $data['no_kk']; // No RTM digunakan sebagai peserta
+				$data['id_peserta'] = $data['no_kk']; // No RTM digunakan sebagai peserta
 				$data['nama_kepala_rtm'] = $data['nama'];
 				$data['kartu_nik'] = $data['nik'];
 				$data['judul_nik'] = 'NIK Kepala RTM';
@@ -203,10 +200,9 @@ class Program_bantuan_model extends MY_Model {
 	{
 		$value = $this->session->cari;
 
-		if ($this->session->has_userdata('cari'))
-		{
+		if ($this->session->has_userdata('cari')) {
 			$kw = $this->db->escape_like_str($value);
-			$kw = '%' .$kw. '%';
+			$kw = '%' . $kw . '%';
 			$search_sql = " AND (o.nama LIKE '$kw' OR peserta LIKE '$kw' OR p.kartu_nik LIKE '$kw' OR p.kartu_nama LIKE '$kw')";
 			return $search_sql;
 		}
@@ -217,53 +213,52 @@ class Program_bantuan_model extends MY_Model {
 	private function get_peserta_sql($slug, $sasaran, $jumlah = false)
 	{
 		if ($jumlah) $select_sql = "COUNT(*) as jumlah";
-		switch ($sasaran)
-		{
+		switch ($sasaran) {
 			case 1:
 				# Data penduduk
 				if (!$jumlah) $select_sql = "p.*, o.nama, x.nama AS sex, w.rt, w.rw, w.dusun, k.no_kk";
-				$strSQL = "SELECT ". $select_sql." FROM program_peserta p
+				$strSQL = "SELECT " . $select_sql . " FROM program_peserta p
 					LEFT JOIN tweb_penduduk o ON p.peserta = o.nik
 					LEFT JOIN tweb_penduduk_sex x ON x.id = o.sex
 					LEFT JOIN tweb_keluarga k ON k.id = o.id_kk
 					LEFT JOIN tweb_wil_clusterdesa w ON w.id = o.id_cluster
-					WHERE p.program_id =".$slug;
+					WHERE p.program_id =" . $slug;
 				break;
 
 			case 2:
 				# Data KK
 				if (!$jumlah) $select_sql = "p.*, p.peserta as nama, k.nik_kepala, k.no_kk, o.nik as nik_kk, o.nama as nama_kk, x.nama AS sex, w.rt, w.rw, w.dusun";
-				$strSQL = "SELECT ". $select_sql."
+				$strSQL = "SELECT " . $select_sql . "
 					FROM program_peserta p
 					LEFT JOIN tweb_keluarga k ON p.peserta = k.no_kk
 					LEFT JOIN tweb_penduduk o ON k.nik_kepala = o.id
 					LEFT JOIN tweb_penduduk kartu on p.kartu_id_pend = kartu.id
 					LEFT JOIN tweb_penduduk_sex x ON x.id = kartu.sex
 					LEFT JOIN tweb_wil_clusterdesa w ON w.id = o.id_cluster
-					WHERE p.program_id =".$slug;
+					WHERE p.program_id =" . $slug;
 				break;
 
 			case 3:
 				# Data RTM
 				if (!$jumlah) $select_sql = "p.*, o.nama, o.nik, r.no_kk, x.nama AS sex, w.rt, w.rw, w.dusun";
-				$strSQL = "SELECT ". $select_sql." FROM program_peserta p
+				$strSQL = "SELECT " . $select_sql . " FROM program_peserta p
 					LEFT JOIN tweb_rtm r ON r.no_kk = p.peserta
 					LEFT JOIN tweb_penduduk o ON o.id = r.nik_kepala
 					LEFT JOIN tweb_penduduk_sex x ON x.id = o.sex
 					LEFT JOIN tweb_wil_clusterdesa w ON w.id = o.id_cluster
-					WHERE p.program_id=".$slug;
+					WHERE p.program_id=" . $slug;
 				break;
 
 			case 4:
 				# Data Kelompok
 				if (!$jumlah) $select_sql = "p.*, o.nama, o.nik, x.nama AS sex, k.no_kk, r.nama as nama_kelompok, w.rt, w.rw, w.dusun";
-				$strSQL = "SELECT ". $select_sql." FROM program_peserta p
+				$strSQL = "SELECT " . $select_sql . " FROM program_peserta p
 					LEFT JOIN kelompok r ON r.id = p.peserta
 					LEFT JOIN tweb_penduduk o ON o.id = r.id_ketua
 					LEFT JOIN tweb_penduduk_sex x ON x.id = o.sex
 					LEFT JOIN tweb_keluarga k on k.id = o.id_kk
 					LEFT JOIN tweb_wil_clusterdesa w ON w.id = o.id_cluster
-					WHERE p.program_id=".$slug;
+					WHERE p.program_id=" . $slug;
 				break;
 
 			default:
@@ -281,8 +276,7 @@ class Program_bantuan_model extends MY_Model {
 		$this->db->where('id', $id);
 		$query = $this->db->get('program');
 		$data = $query->row_array();
-		switch ($data['sasaran'])
-		{
+		switch ($data['sasaran']) {
 			case 1:
 				$data['judul_sasaran'] = 'Sasaran Penduduk';
 				break;
@@ -311,8 +305,7 @@ class Program_bantuan_model extends MY_Model {
 	{
 		$kf = $this->session->sasaran;
 
-		if (isset($kf))
-		{
+		if (isset($kf)) {
 			$sql = " AND p.sasaran = $kf ";
 			return $sql;
 		}
@@ -330,14 +323,13 @@ class Program_bantuan_model extends MY_Model {
 	{
 		$strSQL = "SELECT p.id, p.nama, p.sasaran, p.ndesc, p.sdate, p.edate, p.userid, p.status, p.asaldana, p.status
 			FROM program p
-			WHERE p.id = ".$slug;
+			WHERE p.id = " . $slug;
 		$query = $this->db->query($strSQL);
 		$hasil0 = $query->row_array();
 
 		$hasil0["paging"] = $this->paging_peserta($p, $slug, $hasil0["sasaran"]);
 
-		switch ($hasil0["sasaran"])
-		{
+		switch ($hasil0["sasaran"]) {
 			case 1:
 				/*
 				 * Data penduduk
@@ -381,13 +373,12 @@ class Program_bantuan_model extends MY_Model {
 
 	private function get_data_peserta($hasil0, $slug)
 	{
-		$paging_sql = ' LIMIT ' .$hasil0["paging"]->offset. ',' .$hasil0["paging"]->per_page;
+		$paging_sql = ' LIMIT ' . $hasil0["paging"]->offset . ',' . $hasil0["paging"]->per_page;
 		$strSQL = $this->get_peserta_sql($slug, $hasil0["sasaran"]);
 		$strSQL .= $paging_sql;
 		$query = $this->db->query($strSQL);
 
-		switch ($hasil0["sasaran"])
-		{
+		switch ($hasil0["sasaran"]) {
 			case 1:
 				return $this->get_data_peserta_penduduk($query);
 				break;
@@ -410,23 +401,19 @@ class Program_bantuan_model extends MY_Model {
 		/*
 		 * Data penduduk
 		 * */
-		if ($query->num_rows()>0)
-		{
+		if ($query->num_rows() > 0) {
 			$data = $query->result_array();
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				$data[$i]['id'] = $data[$i]['id'];
 				$data[$i]['nik'] = $data[$i]['peserta'];
 				$data[$i]['peserta_plus'] = $data[$i]['no_kk'] ?: '-';
 				$data[$i]['peserta_nama'] = $data[$i]['peserta'];
 				$data[$i]['peserta_info'] = $data[$i]['nama'];
 				$data[$i]['nama'] = strtoupper($data[$i]['nama']);
-				$data[$i]['info'] = "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+				$data[$i]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 			}
 			$hasil1 = $data;
-		}
-		else
-		{
+		} else {
 			$hasil1 = false;
 		}
 
@@ -438,23 +425,19 @@ class Program_bantuan_model extends MY_Model {
 		/*
 		 * Data KK
 		 * */
-		if ($query->num_rows()>0)
-		{
+		if ($query->num_rows() > 0) {
 			$data = $query->result_array();
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				$data[$i]['id'] = $data[$i]['id'];
 				$data[$i]['nik'] = $data[$i]['peserta'];
 				$data[$i]['peserta_plus'] = $data[$i]['nik_kk'];
 				$data[$i]['peserta_nama'] = $data[$i]['peserta'];
 				$data[$i]['peserta_info'] = $data[$i]['nama_kk'];
 				$data[$i]['nama'] = strtoupper($data[$i]['nama']);
-				$data[$i]['info'] = "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+				$data[$i]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 			}
 			$hasil1 = $data;
-		}
-		else
-		{
+		} else {
 			$hasil1 = false;
 		}
 
@@ -466,22 +449,18 @@ class Program_bantuan_model extends MY_Model {
 		/*
 		 * Data RTM
 		 * */
-		if ($query->num_rows()>0)
-		{
+		if ($query->num_rows() > 0) {
 			$data = $query->result_array();
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				$data[$i]['id'] = $data[$i]['id'];
 				$data[$i]['nik'] = $data[$i]['peserta'];
 				$data[$i]['peserta_nama'] = $data[$i]['no_kk'];
 				$data[$i]['peserta_info'] = $data[$i]['nama'];
-				$data[$i]['nama'] = strtoupper($data[$i]['nama'])." [".$data[$i]['nik']." - ".$data[$i]['no_kk']."]";
-				$data[$i]['info'] = "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+				$data[$i]['nama'] = strtoupper($data[$i]['nama']) . " [" . $data[$i]['nik'] . " - " . $data[$i]['no_kk'] . "]";
+				$data[$i]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 			}
 			$hasil1 = $data;
-		}
-		else
-		{
+		} else {
 			$hasil1 = false;
 		}
 
@@ -493,22 +472,18 @@ class Program_bantuan_model extends MY_Model {
 		/*
 		 * Data Kelompok
 		 * */
-		if ($query->num_rows()>0)
-		{
+		if ($query->num_rows() > 0) {
 			$data = $query->result_array();
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				$data[$i]['id'] = $data[$i]['id'];
 				$data[$i]['nik'] = $data[$i]['nama_kelompok'];
 				$data[$i]['peserta_nama'] = $data[$i]['nama_kelompok'];
 				$data[$i]['peserta_info'] = $data[$i]['nama'];
 				$data[$i]['nama'] = strtoupper($data[$i]['nama']);
-				$data[$i]['info'] = "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+				$data[$i]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 			}
 			$hasil1 = $data;
-		}
-		else
-		{
+		} else {
 			$hasil1 = false;
 		}
 
@@ -527,27 +502,22 @@ class Program_bantuan_model extends MY_Model {
 		$query = $this->db->query($strSQL);
 		$data = "";
 		$data = $query->result_array();
-		if ($query->num_rows() > 0)
-		{
+		if ($query->num_rows() > 0) {
 			$j = 0;
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				// Abaikan penduduk yang sudah terdaftar pada program
-				if (!in_array($data[$i]['nik'], $filter))
-				{
-					if($data[$i]['nik'] != ""){
+				if (!in_array($data[$i]['nik'], $filter)) {
+					if ($data[$i]['nik'] != "") {
 						$data1[$j]['id'] = $data[$i]['nik'];
 						$data1[$j]['nik'] = $data[$i]['nik'];
-						$data1[$j]['nama'] = strtoupper($data[$i]['nama'])." [".$data[$i]['nik']."]";
-						$data1[$j]['info'] = "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+						$data1[$j]['nama'] = strtoupper($data[$i]['nama']) . " [" . $data[$i]['nik'] . "]";
+						$data1[$j]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 						$j++;
 					}
 				}
 			}
 			$hasil2 = $data1;
-		}
-		else
-		{
+		} else {
 			$hasil2 = false;
 		}
 
@@ -573,24 +543,19 @@ class Program_bantuan_model extends MY_Model {
 
 		$hasil2 = array();
 		$data = $query->result_array();
-		if ($query->num_rows() > 0)
-		{
+		if ($query->num_rows() > 0) {
 			$j = 0;
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				// Abaikan keluarga yang sudah terdaftar pada program
-				if(!in_array($data[$i]['no_kk'], $filter))
-				{
+				if (!in_array($data[$i]['no_kk'], $filter)) {
 					$hasil2[$j]['id'] = $data[$i]['nik'];
 					$hasil2[$j]['nik'] = $data[$i]['nik'];
-					$hasil2[$j]['nama'] = strtoupper("KK[".$data[$i]['no_kk']."] - [".$data[$i]['kk_level']."] ".$data[$i]['nama']." [".$data[$i]['nik']."]");
-					$hasil2[$j]['info'] = "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+					$hasil2[$j]['nama'] = strtoupper("KK[" . $data[$i]['no_kk'] . "] - [" . $data[$i]['kk_level'] . "] " . $data[$i]['nama'] . " [" . $data[$i]['nik'] . "]");
+					$hasil2[$j]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 					$j++;
 				}
 			}
-		}
-		else
-		{
+		} else {
 			$hasil2 = false;
 		}
 
@@ -611,24 +576,19 @@ class Program_bantuan_model extends MY_Model {
 		$query = $this->db->query($strSQL);
 		$hasil2 = array();;
 		$data = $query->result_array();
-		if ($query->num_rows() > 0)
-		{
+		if ($query->num_rows() > 0) {
 			$j = 0;
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				// Abaikan RTM yang sudah terdaftar pada program
-				if (!in_array($data[$i]['id'], $filter))
-				{
+				if (!in_array($data[$i]['id'], $filter)) {
 					$hasil2[$j]['id'] = $data[$i]['id'];
 					$hasil2[$j]['nik'] = $data[$i]['id'];
-					$hasil2[$j]['nama'] = strtoupper($data[$i]['nama'])." [".$data[$i]['id']."]";
-					$hasil2[$j]['info'] = "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+					$hasil2[$j]['nama'] = strtoupper($data[$i]['nama']) . " [" . $data[$i]['id'] . "]";
+					$hasil2[$j]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 					$j++;
 				}
 			}
-		}
-		else
-		{
+		} else {
 			$hasil2 = false;
 		}
 
@@ -647,24 +607,19 @@ class Program_bantuan_model extends MY_Model {
 		$query = $this->db->query($strSQL);
 		$hasil2 = array();
 		$data = $query->result_array();
-		if ($query->num_rows() > 0)
-		{
+		if ($query->num_rows() > 0) {
 			$j = 0;
-			for ($i=0; $i<count($data); $i++)
-			{
+			for ($i = 0; $i < count($data); $i++) {
 				// Abaikan kelompok yang sudah terdaftar pada program
-				if (!in_array($data[$i]['id'], $filter))
-				{
+				if (!in_array($data[$i]['id'], $filter)) {
 					$hasil2[$j]['id'] = $data[$i]['id'];
 					$hasil2[$j]['nik'] = $data[$i]['nama_kelompok'];
-					$hasil2[$j]['nama'] = strtoupper($data[$i]['nama'])." [".$data[$i]['nama_kelompok']."]";
-					$hasil2[$j]['info'] = "RT/RW ". $data[$i]['rt']."/".$data[$i]['rw']." - ".strtoupper($data[$i]['dusun']);
+					$hasil2[$j]['nama'] = strtoupper($data[$i]['nama']) . " [" . $data[$i]['nama_kelompok'] . "]";
+					$hasil2[$j]['info'] = "RT/RW " . $data[$i]['rt'] . "/" . $data[$i]['rw'] . " - " . strtoupper($data[$i]['dusun']);
 					$j++;
 				}
 			}
-		}
-		else
-		{
+		} else {
 			$hasil2 = false;
 		}
 
@@ -674,8 +629,7 @@ class Program_bantuan_model extends MY_Model {
 
 	public function get_program($p, $slug)
 	{
-		if ($slug === false)
-		{
+		if ($slug === false) {
 			//Query untuk expiration status, jika end date sudah melebihi dari datenow maka status otomatis menjadi tidak aktif
 			$expirySQL = "UPDATE program SET status = IF(edate < CURRENT_DATE(), 0, IF(edate > CURRENT_DATE(), 1, status)) WHERE status IS NOT NULL";
 			$expiryQuery = $this->db->query($expirySQL);
@@ -685,26 +639,22 @@ class Program_bantuan_model extends MY_Model {
 			$strSQL .= "LEFT JOIN program_peserta AS v ON p.id = v.program_id WHERE 1 ";
 			$strSQL .= $this->sasaran_sql();
 			$strSQL .= " GROUP BY p.id ";
-			$strSQL .= ' LIMIT ' .$response["paging"]->offset. ',' .$response["paging"]->per_page;
+			$strSQL .= ' LIMIT ' . $response["paging"]->offset . ',' . $response["paging"]->per_page;
 			$query = $this->db->query($strSQL);
 			$data = $query->result_array();
 			$response['program'] = $data;
 			return $response;
-		}
-		else
-		{
+		} else {
 			// Untuk program bantuan, $slug berbentuk '50<program_id>'
 			$slug = preg_replace("/^50/", "", $slug);
 			$hasil0 = $this->get_program_data($p, $slug);
 			$hasil1 = $this->get_data_peserta($hasil0, $slug);
 			$filter = array();
-			foreach ($hasil1 as $data)
-			{
+			foreach ($hasil1 as $data) {
 				$filter[] = $data['peserta'];
 			}
 
-			switch ($hasil0["sasaran"])
-			{
+			switch ($hasil0["sasaran"]) {
 				case 1:
 					$hasil2 = $this->get_pilihan_penduduk($filter);
 					break;
@@ -745,15 +695,13 @@ class Program_bantuan_model extends MY_Model {
 		$strSQL = "SELECT p.id AS id, o.peserta AS nik, o.id AS peserta_id,  p.nama AS nama, p.sdate, p.edate, p.ndesc, p.status
 			FROM program_peserta o
 			LEFT JOIN program p ON p.id = o.program_id
-			WHERE ((o.peserta='".$id."') AND (p.sasaran='".$cat."'))";
+			WHERE ((o.peserta='" . $id . "') AND (p.sasaran='" . $cat . "'))";
 		$query = $this->db->query($strSQL);
-		if ($query->num_rows() > 0)
-		{
+		if ($query->num_rows() > 0) {
 			$data_program = $query->result_array();
 		}
 
-		switch ($cat)
-		{
+		switch ($cat) {
 			case 1:
 				/*
 				 * Rincian Penduduk
@@ -761,17 +709,16 @@ class Program_bantuan_model extends MY_Model {
 				$strSQL = "SELECT o.nama, o.foto, o.nik, w.rt, w.rw, w.dusun
 					FROM tweb_penduduk o
 					LEFT JOIN tweb_wil_clusterdesa w ON w.id = o.id_cluster
-					WHERE o.nik='".$id."'";
+					WHERE o.nik='" . $id . "'";
 				$query = $this->db->query($strSQL);
-				if ($query->num_rows() > 0)
-				{
+				if ($query->num_rows() > 0) {
 					$row = $query->row_array();
 					$data_profil = array(
-						"id"=>$id,
-						"nama"=>$row["nama"] ." - ".$row["nik"],
-						"ndesc"=>"Alamat: RT ".strtoupper($row["rt"])." / RW ".strtoupper($row["rw"])." ".strtoupper($row["dusun"]),
-						"foto"=>$row["foto"]
-						);
+						"id" => $id,
+						"nama" => $row["nama"] . " - " . $row["nik"],
+						"ndesc" => "Alamat: RT " . strtoupper($row["rt"]) . " / RW " . strtoupper($row["rw"]) . " " . strtoupper($row["dusun"]),
+						"foto" => $row["foto"]
+					);
 				}
 
 				break;
@@ -782,17 +729,16 @@ class Program_bantuan_model extends MY_Model {
 				 * */
 				$strSQL = "SELECT o.nik_kepala, o.no_kk, p.nama, w.rt, w.rw, w.dusun FROM tweb_keluarga o
 					LEFT JOIN tweb_penduduk p ON o.nik_kepala = p.id
-					LEFT JOIN tweb_wil_clusterdesa w ON w.id = p.id_cluster WHERE o.no_kk = '".$id."'";
+					LEFT JOIN tweb_wil_clusterdesa w ON w.id = p.id_cluster WHERE o.no_kk = '" . $id . "'";
 				$query = $this->db->query($strSQL);
-				if ($query->num_rows() > 0)
-				{
+				if ($query->num_rows() > 0) {
 					$row = $query->row_array();
 					$data_profil = array(
-						"id"=>$id,
-						"nama"=> "Kepala KK : ".$row["nama"].", NO KK: ".$row["no_kk"],
-						"ndesc"=>"Alamat: RT ".strtoupper($row["rt"])." / RW ".strtoupper($row["rw"])." ".strtoupper($row["dusun"]),
-						"foto"=>""
-						);
+						"id" => $id,
+						"nama" => "Kepala KK : " . $row["nama"] . ", NO KK: " . $row["no_kk"],
+						"ndesc" => "Alamat: RT " . strtoupper($row["rt"]) . " / RW " . strtoupper($row["rw"]) . " " . strtoupper($row["dusun"]),
+						"foto" => ""
+					);
 				}
 				break;
 
@@ -805,15 +751,14 @@ class Program_bantuan_model extends MY_Model {
 					LEFT JOIN tweb_wil_clusterdesa w ON w.id = o.id_cluster
 					WHERE r.no_kk=$id";
 				$query = $this->db->query($strSQL);
-				if ($query->num_rows() > 0)
-				{
+				if ($query->num_rows() > 0) {
 					$row = $query->row_array();
 					$data_profil = array(
-						"id"=>$id,
-						"nama"=> "Kepala RTM : ".$row["nama"].", NIK: ".$row["nik"],
-						"ndesc"=>"Alamat: RT ".strtoupper($row["rt"])." / RW ".strtoupper($row["rw"])." ".strtoupper($row["dusun"]),
-						"foto"=>""
-						);
+						"id" => $id,
+						"nama" => "Kepala RTM : " . $row["nama"] . ", NIK: " . $row["nik"],
+						"ndesc" => "Alamat: RT " . strtoupper($row["rt"]) . " / RW " . strtoupper($row["rw"]) . " " . strtoupper($row["dusun"]),
+						"foto" => ""
+					);
 				}
 				break;
 
@@ -824,30 +769,25 @@ class Program_bantuan_model extends MY_Model {
 				$strSQL = "SELECT k.id as id, k.nama as nama, p.nama as ketua, p.nik as nik, w.rt, w.rw, w.dusun FROM kelompok k
 				 LEFT JOIN tweb_penduduk p ON p.id = k.id_ketua
 				 LEFT JOIN tweb_wil_clusterdesa w ON w.id = p.id_cluster
-				 WHERE k.id='".$id."'";
+				 WHERE k.id='" . $id . "'";
 				$query = $this->db->query($strSQL);
-				if ($query->num_rows() > 0)
-				{
+				if ($query->num_rows() > 0) {
 					$row = $query->row_array();
 					$data_profil = array(
-						"id"=>$id,
-						"nama"=> $row["nama"],
-						"ndesc"=>"Ketua: ".$row["ketua"]." [".$row["nik"]."]<br />Alamat: RT ".strtoupper($row["rt"])." / RW ".strtoupper($row["rw"])." ".strtoupper($row["dusun"]),
-						"foto"=>""
-						);
+						"id" => $id,
+						"nama" => $row["nama"],
+						"ndesc" => "Ketua: " . $row["ketua"] . " [" . $row["nik"] . "]<br />Alamat: RT " . strtoupper($row["rt"]) . " / RW " . strtoupper($row["rw"]) . " " . strtoupper($row["dusun"]),
+						"foto" => ""
+					);
 				}
 				break;
 
 			default:
-
 		}
-		if (!$data_program==false)
-		{
+		if (!$data_program == false) {
 			$hasil = array("programkerja" => $data_program, "profil" => $data_profil);
 			return $hasil;
-		}
-		else
-		{
+		} else {
 			return null;
 		}
 	}
@@ -884,7 +824,7 @@ class Program_bantuan_model extends MY_Model {
 
 		$file_gambar = $this->_upload_gambar();
 		if ($file_gambar) $data['kartu_peserta'] = $file_gambar;
-			$outp = $this->db->insert('program_peserta', $data);
+		$outp = $this->db->insert('program_peserta', $data);
 		status_sukses($outp, true);
 	}
 
@@ -895,8 +835,7 @@ class Program_bantuan_model extends MY_Model {
 		$this->session->error_msg = '';
 		$data = $this->validasi_peserta($this->input->post());
 
-		if ($data['gambar_hapus'])
-		{
+		if ($data['gambar_hapus']) {
 			unlink(LOKASI_DOKUMEN . $data['gambar_hapus']);
 			$data['kartu_peserta'] = '';
 		}
@@ -928,14 +867,13 @@ class Program_bantuan_model extends MY_Model {
 		if ($_FILES['satuan']['error'] == UPLOAD_ERR_NO_FILE) return null;
 
 		$error = periksa_file('satuan', unserialize(MIME_TYPE_GAMBAR), unserialize(EXT_GAMBAR));
-		if ($error != '')
-		{
+		if ($error != '') {
 			$this->session->set_userdata('success', -1);
 			$this->session->set_userdata('error_msg', $error);
 			return null;
 		}
 		$nama_file = $_FILES['satuan']['name'];
-		$nama_file   = time().'-'.urlencode($nama_file); 	 // normalkan nama file
+		$nama_file   = time() . '-' . urlencode($nama_file); 	 // normalkan nama file
 		UploadDocument($nama_file, $old_document);
 
 		return $nama_file;
@@ -947,7 +885,7 @@ class Program_bantuan_model extends MY_Model {
 		$this->db->delete('program_peserta');
 	}
 
-	public function hapus_peserta($peserta_id='', $semua=false)
+	public function hapus_peserta($peserta_id = '', $semua = false)
 	{
 		$this->db->where('id', $peserta_id);
 		$this->db->delete('program_peserta');
@@ -958,9 +896,8 @@ class Program_bantuan_model extends MY_Model {
 		$this->session->success = 1;
 
 		$id_cb = $_POST['id_cb'];
-		foreach ($id_cb as $peserta_id)
-		{
-			$this->hapus_peserta($peserta_id, $semua=true);
+		foreach ($id_cb as $peserta_id) {
+			$this->hapus_peserta($peserta_id, $semua = true);
 		}
 	}
 
@@ -979,8 +916,7 @@ class Program_bantuan_model extends MY_Model {
 
 		// Data tambahan untuk ditampilkan
 		$peserta = $this->get_peserta($data['peserta'], $data['sasaran']);
-		switch ($data['sasaran'])
-		{
+		switch ($data['sasaran']) {
 			case 1:
 				$data['judul_peserta'] = 'NIK';
 				$data['judul_peserta_info'] = 'Nama Peserta';
@@ -1023,24 +959,17 @@ class Program_bantuan_model extends MY_Model {
 		$hasil = $this->db->where('id', $id)
 			->update('program', $data);
 
-		if ($hasil)
-		{
+		if ($hasil) {
 			$_SESSION["success"] = 1;
 			$_SESSION["pesan"] = "Data program telah diperbarui";
-		}
-		else
-		{
+		} else {
 			$_SESSION["success"] = -1;
 		}
 	}
 
 	public function jml_peserta_program($id)
 	{
-		$jml_peserta = $this->db->select('count(v.program_id) as jml')->
-			from('program p')->
-			join('program_peserta v', 'p.id = v.program_id', 'left')->
-			where('p.id', $id)->
-			get()->row()->jml;
+		$jml_peserta = $this->db->select('count(v.program_id) as jml')->from('program p')->join('program_peserta v', 'p.id = v.program_id', 'left')->where('p.id', $id)->get()->row()->jml;
 
 		return $jml_peserta;
 	}
@@ -1050,20 +979,16 @@ class Program_bantuan_model extends MY_Model {
 	*/
 	public function hapus_program($id)
 	{
-		if ($this->jml_peserta_program($id) > 0)
-		{
+		if ($this->jml_peserta_program($id) > 0) {
 			$_SESSION["success"] = -1;
 			return;
 		}
 
 		$hasil = $this->db->where('id', $id)->delete('program');
-		if ($hasil)
-		{
+		if ($hasil) {
 			$_SESSION["success"] = 1;
 			$_SESSION["pesan"] = "Data program telah dihapus";
-		}
-		else
-		{
+		} else {
 			$_SESSION["success"] = -1;
 		}
 	}
@@ -1075,10 +1000,10 @@ class Program_bantuan_model extends MY_Model {
 	public function daftar_bantuan_yang_diterima($nik)
 	{
 		return $this->db->select('p.*, pp.*')
-					->where(array('peserta' => $nik))
-					->join('program p','p.id = pp.program_id', 'left')
-					->get('program_peserta pp')
-					->result_array();
+			->where(array('peserta' => $nik))
+			->join('program p', 'p.id = pp.program_id', 'left')
+			->get('program_peserta pp')
+			->result_array();
 	}
 
 	/* ====================================
@@ -1091,16 +1016,14 @@ class Program_bantuan_model extends MY_Model {
 			->select("p.nama as program, pend.nama as peserta, concat('RT ', w.rt, ' / RW ', w.rw, ' DUSUN ', w.dusun) AS alamat")
 			->from('program p')
 			->join('program_peserta pp', 'p.id = pp.program_id', 'left');
-		if ($this->input->post('stat') == 'bantuan_keluarga')
-		{
+		if ($this->input->post('stat') == 'bantuan_keluarga') {
 			$this->db
 				->join('tweb_keluarga k', 'pp.peserta = k.no_kk')
 				->join('tweb_penduduk pend', 'k.nik_kepala = pend.id')
 				->join('tweb_wil_clusterdesa w', 'k.id_cluster = w.id')
 				->where('p.sasaran', '2')
 				->where('p.status', '1');
-		}
-		else // bantuan_penduduk
+		} else // bantuan_penduduk
 		{
 			$this->db
 				->join('tweb_penduduk pend', 'pp.peserta = pend.nik')
@@ -1121,15 +1044,13 @@ class Program_bantuan_model extends MY_Model {
 		{
 			if ($cari = $_POST['search']['value']) // if datatable send POST for search
 			{
-				if ($i===0) // first loop
+				if ($i === 0) // first loop
 				{
 					$this->db->group_start(); // open bracket. query Where with OR clause better with bracket. because maybe can combine with other WHERE with AND.
 					// $this->db->like($item, $_POST['search']['value']);
 
 					$this->db->like($item, $cari);
-				}
-				else
-				{
+				} else {
 					$this->db->or_like($item, $cari);
 				}
 				if (count($this->column_search) - 1 == $i) //last loop
@@ -1146,9 +1067,7 @@ class Program_bantuan_model extends MY_Model {
 		if (isset($_POST['order'])) // here order processing
 		{
 			$this->db->order_by($this->column_order[$_POST['order']['0']['column']], $_POST['order']['0']['dir']);
-		}
-		else if (isset($this->order))
-		{
+		} else if (isset($this->order)) {
 			$order = $this->order;
 			$this->db->order_by(key($order), $order[key($order)]);
 		}
@@ -1185,15 +1104,15 @@ class Program_bantuan_model extends MY_Model {
 			->select('p.id as id, p.nama, p.nik, p.id_kk, p.id_rtm, p.rtm_level, x.nama AS sex, h.nama AS hubungan, p.tempatlahir, p.tanggallahir, a.nama AS agama, k.nama AS pendidikan, j.nama AS pekerjaan, w.nama AS warganegara, c.dusun, c.rw, c.rt')
 			->from('penduduk_hidup p')
 			->join('tweb_penduduk_sex x', 'x.id = p.sex', 'left')
-			->join('tweb_penduduk_hubungan h','h.id = p.kk_level', 'left')
-			->join('tweb_penduduk_agama a','a.id = p.agama_id', 'left')
-			->join('tweb_penduduk_pendidikan_kk k','k.id = p.pendidikan_kk_id', 'left')
-			->join('tweb_penduduk_pekerjaan j','j.id = p.pekerjaan_id', 'left')
-			->join('tweb_penduduk_warganegara w','w.id = p.warganegara_id', 'left')
-			->join('tweb_wil_clusterdesa c','c.id = p.id_cluster', 'left')
+			->join('tweb_penduduk_hubungan h', 'h.id = p.kk_level', 'left')
+			->join('tweb_penduduk_agama a', 'a.id = p.agama_id', 'left')
+			->join('tweb_penduduk_pendidikan_kk k', 'k.id = p.pendidikan_kk_id', 'left')
+			->join('tweb_penduduk_pekerjaan j', 'j.id = p.pekerjaan_id', 'left')
+			->join('tweb_penduduk_warganegara w', 'w.id = p.warganegara_id', 'left')
+			->join('tweb_wil_clusterdesa c', 'c.id = p.id_cluster', 'left')
 			->group_start()
-				->where('p.nik', $peserta_id) // Hapus jika 'peserta' sudah fix menggunakan 'id' (sesuai sasaran) sebagai referensi parameter
-				->or_where('p.id', $peserta_id)
+			->where('p.nik', $peserta_id) // Hapus jika 'peserta' sudah fix menggunakan 'id' (sesuai sasaran) sebagai referensi parameter
+			->or_where('p.id', $peserta_id)
 			->group_end()
 			->get()
 			->row_array();
@@ -1208,11 +1127,11 @@ class Program_bantuan_model extends MY_Model {
 		$kk = $this->db
 			->select('k.no_kk, p.nik as nik_kk, p.nama as nama_kk, k.alamat, c.*')
 			->from('keluarga_aktif k')
-			->join('penduduk_hidup p','p.id = k.nik_kepala', 'left')
-			->join('tweb_wil_clusterdesa c','c.id = k.id_cluster', 'left')
+			->join('penduduk_hidup p', 'p.id = k.nik_kepala', 'left')
+			->join('tweb_wil_clusterdesa c', 'c.id = k.id_cluster', 'left')
 			->group_start()
-				->where('k.no_kk', $id_kk) // Hapus jika 'peserta' sudah fix menggunakan 'id' (sesuai sasaran) sebagai referensi parameter
-				->or_where('k.id', $id_kk)
+			->where('k.no_kk', $id_kk) // Hapus jika 'peserta' sudah fix menggunakan 'id' (sesuai sasaran) sebagai referensi parameter
+			->or_where('k.id', $id_kk)
 			->group_end()
 			->get()
 			->row_array();
@@ -1231,8 +1150,7 @@ class Program_bantuan_model extends MY_Model {
 
 		$data_program = array_merge($data_program, $data_tambahan);
 
-		if ($program_id == NULL)
-		{
+		if ($program_id == NULL) {
 			$this->db->insert('program', $data_program);
 
 			return $this->db->insert_id();
@@ -1249,8 +1167,7 @@ class Program_bantuan_model extends MY_Model {
 
 		if ($kosongkan_peserta == 1) $this->db->where('program_id', $program_id)->delete('program_peserta');
 
-		if ($data_diubah)
-		{
+		if ($data_diubah) {
 			$data_diubah = explode(", ", ltrim($data_diubah, ", "));
 
 			$this->db->where_in('peserta', $data_diubah)->where('program_id', $program_id)->delete('program_peserta');
@@ -1265,8 +1182,7 @@ class Program_bantuan_model extends MY_Model {
 	{
 		if (in_array($peserta, [NULL, '-', ' ', '0'])) return false;
 
-		switch ($sasaran)
-		{
+		switch ($sasaran) {
 			case 1:
 				// Penduduk
 				$sasaran_peserta = 'NIK';
@@ -1285,7 +1201,7 @@ class Program_bantuan_model extends MY_Model {
 				$data = $this->db
 					->select('k.id, p.nik')
 					->from('penduduk_hidup p')
-					->join('keluarga_aktif k','k.id = p.id_kk', 'left')
+					->join('keluarga_aktif k', 'k.id = p.id_kk', 'left')
 					->where('k.no_kk', $peserta)
 					->get()
 					->result_array();
@@ -1299,7 +1215,7 @@ class Program_bantuan_model extends MY_Model {
 				$data = $this->db
 					->select('r.id, p.nik')
 					->from('penduduk_hidup p')
-					->join('tweb_rtm r','p.id = r.nik_kepala', 'left')
+					->join('tweb_rtm r', 'p.id = r.nik_kepala', 'left')
 					->where('r.no_kk', $peserta)
 					->get()
 					->result_array();
@@ -1312,7 +1228,7 @@ class Program_bantuan_model extends MY_Model {
 				$data = $this->db
 					->select('kl.id, p.nik')
 					->from('penduduk_hidup p')
-					->join('kelompok kl','p.id = kl.id_ketua', 'left')
+					->join('kelompok kl', 'p.id = kl.id_ketua', 'left')
 					->where('kl.kode', $peserta)
 					->get()
 					->result_array();
@@ -1326,11 +1242,9 @@ class Program_bantuan_model extends MY_Model {
 		$data = [
 			'id' => $data[0]['id'], // untuk nik, no_kk, no_rtm, kode konversi menjadi id issue #3417
 			'sasaran_peserta' => $sasaran_peserta,
-			'valid' => str_replace("'", "", explode (", ", sql_in_list(array_column($data, 'nik')))) // untuk daftar valid anggota keluarga
+			'valid' => str_replace("'", "", explode(", ", sql_in_list(array_column($data, 'nik')))) // untuk daftar valid anggota keluarga
 		];
 
 		return $data;
 	}
-
 }
-?>
