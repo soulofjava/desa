@@ -182,6 +182,7 @@ class Cdesa_model extends CI_Model
 		$data = $this->db->select('m.*')
 			->from('mutasi_cdesa m')
 			->where('m.id', $id_mutasi)
+			->where('m.desa_id', $this->config->item('desa_id'))
 			->get('')
 			->row_array();
 		return $data;
@@ -194,13 +195,14 @@ class Cdesa_model extends CI_Model
 			->select('(CASE WHEN c.jenis_pemilik = 1 THEN u.nama ELSE c.nama_pemilik_luar END) AS namapemilik')
 			->select('(CASE WHEN c.jenis_pemilik = 1 THEN CONCAT("RT ", w.rt, " / RW ", w.rw, " - ", w.dusun) ELSE c.alamat_pemilik_luar END) AS alamat')
 			->from('cdesa c')
-			->where('c.desa_id', $this->config->item('desa_id'))
 			->join('cdesa_penduduk cu', 'cu.id_cdesa = c.id', 'left')
 			->join('tweb_penduduk u', 'u.id = cu.id_pend', 'left')
 			->join('tweb_wil_clusterdesa w', 'w.id = u.id_cluster', 'left')
+			->where('c.desa_id', $this->config->item('desa_id'))
 			->limit(1)
-			->get();
-
+			->get()
+			->row_array();
+		// die($this->db->last_query($data));
 		return $data;
 	}
 
@@ -297,7 +299,8 @@ class Cdesa_model extends CI_Model
 			->join('tweb_penduduk p', 'p.id = cp.id_pend', 'left')
 			->join('tweb_keluarga k', 'k.id = p.id_kk', 'left')
 			->join('tweb_wil_clusterdesa w', 'w.id = p.id_cluster', 'left')
-			->where('c.id', $id_cdesa);
+			->where('c.id', $id_cdesa)
+			->where('c.desa_id', $this->config->item('desa_id'));
 		$data = $this->db->get()->row_array();
 
 		return $data;
@@ -475,8 +478,8 @@ class Cdesa_model extends CI_Model
 		$strSQL = "SELECT p.nik,p.nama,k.no_kk,w.rt,w.rw,w.dusun FROM tweb_penduduk p
 			LEFT JOIN tweb_keluarga k ON k.id = p.id_kk
 			LEFT JOIN tweb_wil_clusterdesa w ON w.id = p.id_cluster
-			WHERE 1 ORDER BY nama";
-		$query = $this->db->where('p.desa_id', $this->config->item('desa_id'))->query($strSQL);
+			WHERE 1 AND p.desa_id = " . $this->config->item('desa_id') . " ORDER BY nama";
+		$query = $this->db->query($strSQL);
 		$data = "";
 		$data = $query->result_array();
 		if ($query->num_rows() > 0) {
