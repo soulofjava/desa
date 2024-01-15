@@ -152,7 +152,7 @@ class Wilayah_model extends MY_Model
 			->or_where("w.rw <> '-' and w.rt = '0'")
 			->or_where("w.rt <> '0' and w.rt <> '-'")
 			->group_end()
-			
+
 			->order_by('w.urut_cetak, w.dusun, rw, rt')
 			->get()
 			->result_array();
@@ -392,6 +392,7 @@ class Wilayah_model extends MY_Model
 	public function paging_rt($p = 1, $o = 0, $dusun = '', $rw = '')
 	{
 		$this->list_data_rt_query($dusun, $rw);
+
 		$jml_data = $this->db
 			->select('COUNT(*) AS jml ')
 			->get()
@@ -420,16 +421,18 @@ class Wilayah_model extends MY_Model
 	{
 		$this->list_data_rt_query($dusun, $rw);
 		$this->db->select("u.*, a.nama AS nama_ketua, a.nik AS nik_ketua,
-		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa  desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt)) AS jumlah_warga,
+		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt)) AS jumlah_warga,
 		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.sex = 1) AS jumlah_warga_l,
 		(SELECT COUNT(p.id) FROM penduduk_hidup p WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.sex = 2) AS jumlah_warga_p,
 		(SELECT COUNT(p.id) FROM keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala=p.id  WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.kk_level = 1 AND p.desa_id=" . $this->config->item('desa_id') . ") AS jumlah_kk");
 
-		$this->db
-			->order_by('u.urut', 'ASC');
+
+
+		$this->db->order_by('u.urut', 'ASC');
 
 		if ($limit > 0) $this->db->limit($limit, $offset);
 
+		// die($this->db->last_query());
 		$data = $this->db->get()->result_array();
 
 		//Formating Output
@@ -612,7 +615,8 @@ class Wilayah_model extends MY_Model
 					(SELECT COUNT(p.id) FROM  keluarga_aktif k inner join penduduk_hidup p ON k.nik_kepala=p.id   WHERE p.desa_id=" . $this->config->item('desa_id') . " AND p.id_cluster IN(SELECT id FROM tweb_wil_clusterdesa WHERE desa_id=" . $this->config->item('desa_id') . " AND dusun = '$dusun' AND rw = '$rw' AND rt = u.rt) AND p.kk_level = 1) AS jumlah_kk
 					FROM tweb_wil_clusterdesa u
 					LEFT JOIN penduduk_hidup a ON u.id_kepala = a.id
-					WHERE u.rt <> '0' AND u.rt <> '-' AND u.rw = '$rw' AND u.dusun = '$dusun' AND desa_id=" . $this->config->item('desa_id') . ") AS x  ";
+					WHERE u.rt <> '0' AND u.rt <> '-' AND u.rw = '$rw' AND u.dusun = '$dusun' AND u.desa_id=" . $this->config->item('desa_id') . ") AS x  ";
+		// die($sql);
 		$query = $this->db->query($sql);
 		$data = $query->row_array();
 		return $data;
