@@ -95,7 +95,7 @@ class Mandiri_model extends CI_Model
 		$this->db
 			->from('tweb_penduduk_mandiri pm')
 			->join('penduduk_hidup p', 'pm.id_pend = p.id', 'LEFT')
-			->where('pb.desa_id', $this->config->item('desa_id'));
+			->where('pm.desa_id', $this->config->item('desa_id'));
 
 		$this->search_sql();
 	}
